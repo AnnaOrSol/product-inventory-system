@@ -1,0 +1,15 @@
+# Frontend
+frontend/home-inventory-ui/node_modules
+frontend/home-inventory-ui/dist
+.env
+
+# Backend
+backend/**/target
+
+# Infra
+infra/**/.env
+
+# IDE
+.idea
+.vscode
+.DS_Store
