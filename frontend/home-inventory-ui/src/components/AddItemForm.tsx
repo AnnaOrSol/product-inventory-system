@@ -8,7 +8,9 @@ import { ProductSelect } from "./ProductSelect";
 import { toast } from "sonner";
 import { addInventoryItem } from "@/api/inventoryApi";
 import type { Product } from "@/types/product";
+import { installationService } from "@/services/installationService"
 
+const INSTALLATION_ID = installationService.getId() || "";
 
 interface AddItemFormProps {
     onItemAdded: () => void;
@@ -34,7 +36,7 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
 
         try {
             const payload: any = {
-                installationId: "11111111-1111-1111-1111-111111111111", // temporary installation id
+                installationId: INSTALLATION_ID,
                 productId: selectedProduct.id,
                 productName: selectedProduct.name,
                 quantity,

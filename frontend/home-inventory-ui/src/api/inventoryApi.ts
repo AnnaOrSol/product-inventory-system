@@ -1,7 +1,9 @@
 import { InventoryItem } from "@/types/inventory";
+import { CONFIG } from "@/lib/config"
+import { installationService } from "@/services/installationService"
 
-const API_BASE = "http://192.168.3.22:8085";
-const INSTALLATION_ID = "11111111-1111-1111-1111-111111111111";
+const API_BASE = CONFIG.INVENTORY_API;
+const INSTALLATION_ID = installationService.getId() || "";
 
 // GET
 export async function fetchInventory(): Promise<InventoryItem[]> {

@@ -1,9 +1,10 @@
 import { Product } from "@/types/product";
+import { CONFIG } from "@/lib/config"
 
-const PRODUCT_API = "http://192.168.3.22:8084/product";
+const PRODUCT_API = CONFIG.PRODUCT_API;
 
 export async function fetchProducts(): Promise<Product[]> {
-    const res = await fetch(`${PRODUCT_API}/items`);
+    const res = await fetch(`${PRODUCT_API}/product/items`);
 
     if (!res.ok) {
         throw new Error(`Failed to fetch products: ${res.status}`);

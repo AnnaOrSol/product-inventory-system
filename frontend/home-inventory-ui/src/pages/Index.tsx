@@ -1,31 +1,58 @@
 import { useState, useEffect } from "react";
-import { Plus, Package, Search, SlidersHorizontal } from "lucide-react";
+import { Plus, Package, Search, SlidersHorizontal, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryCard } from "@/components/InventoryCard";
 import { AddItemForm } from "@/components/AddItemForm";
+import { LoginScreen } from "@/components/LoginScreen";
 import { fetchInventory } from "@/api/inventoryApi";
+import { installationService } from "@/services/installationService";
 import type { InventoryItem } from "@/types/inventory";
 
 const Index = () => {
+    const [installationId, setInstallationId] = useState<string | null>(null);
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"name" | "date" | "expiry">("expiry");
+    const [loading, setLoading] = useState(true);
+
+    // Initial load: check for saved session
+    useEffect(() => {
+        const savedId = installationService.getId();
+        if (savedId) {
+            setInstallationId(savedId);
+        }
+        setLoading(false);
+    }, []);
 
     const loadItems = async () => {
-        const inventoryItems = await fetchInventory();
-        setItems(inventoryItems);
+        try {
+            const inventoryItems = await fetchInventory();
+            setItems(inventoryItems);
+        } catch (error) {
+            console.error("Failed to load inventory:", error);
+        }
+    };
+
+    const handleLogout = () => {
+        installationService.clearId();
+        setInstallationId(null);
+        setItems([]);
     };
 
     const handleItemDeleted = (productId: number) => {
         setItems(prev => prev.filter(item => item.productId !== productId));
     };
 
+    // Auto-load items when ID is set
     useEffect(() => {
-        loadItems();
-    }, []);
+        if (installationId) {
+            loadItems();
+        }
+    }, [installationId]);
 
+    // Filter and Sort Logic
     const filteredAndSortedItems = items
         .filter(item =>
             (item.productName ?? "")
@@ -35,29 +62,34 @@ const Index = () => {
         .sort((a, b) => {
             switch (sortBy) {
                 case "name":
-                    return a.productName.localeCompare(b.productName);
+                    return (a.productName || "").localeCompare(b.productName || "");
                 case "date":
-                    return (
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime()
-                    );
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
                 case "expiry":
-                    return (
-                        new Date(a.bestBefore ?? "").getTime() -
-                        new Date(b.bestBefore ?? "").getTime()
-                    );
+                    // Items without expiry date go to the bottom
+                    const expA = a.bestBefore ? new Date(a.bestBefore).getTime() : Infinity;
+                    const expB = b.bestBefore ? new Date(b.bestBefore).getTime() : Infinity;
+                    return expA - expB;
                 default:
                     return 0;
             }
         });
 
     const expiringCount = items.filter(item => {
+        if (!item.bestBefore) return false;
         const daysUntil = Math.ceil(
-            (new Date(item.bestBefore ?? "").getTime() - new Date().getTime()) /
-            (1000 * 60 * 60 * 24)
+            (new Date(item.bestBefore).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
         );
         return daysUntil <= 3 && daysUntil >= 0;
     }).length;
+
+    if (loading) return null;
+
+    if (!installationId) {
+        return <LoginScreen onLoginSuccess={(id) => setInstallationId(id)} />;
+    }
 
     return (
         <div className="min-h-screen gradient-warm">
@@ -74,22 +106,27 @@ const Index = () => {
                                     Home Inventory
                                 </h1>
                                 <p className="text-xs text-muted-foreground">
-                                    {items.length} items tracked
+                                    {items.length} items total
                                 </p>
                             </div>
                         </div>
 
-                        {expiringCount > 0 && (
-                            <div className="bg-warning/10 text-warning px-3 py-1.5 rounded-full text-xs font-medium">
-                                {expiringCount} expiring soon
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {expiringCount > 0 && (
+                                <div className="bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full text-xs font-medium border border-orange-200">
+                                    {expiringCount} expiring soon
+                                </div>
+                            )}
+                            <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                                <LogOut className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="container py-6 pb-24">
-                {/* Search and Sort */}
+                {/* Search and Sort Controls */}
                 <div className="flex gap-2 mb-6">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -104,13 +141,7 @@ const Index = () => {
                         variant="outline"
                         size="icon"
                         onClick={() =>
-                            setSortBy(
-                                sortBy === "expiry"
-                                    ? "name"
-                                    : sortBy === "name"
-                                        ? "date"
-                                        : "expiry"
-                            )
+                            setSortBy(prev => prev === "expiry" ? "name" : prev === "name" ? "date" : "expiry")
                         }
                         className="shrink-0"
                     >
@@ -122,28 +153,16 @@ const Index = () => {
                 <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
                     <span>Sorted by:</span>
                     <button
-                        onClick={() =>
-                            setSortBy(
-                                sortBy === "expiry"
-                                    ? "name"
-                                    : sortBy === "name"
-                                        ? "date"
-                                        : "expiry"
-                            )
-                        }
-                        className="font-medium text-primary hover:underline"
+                        onClick={() => setSortBy(prev => prev === "expiry" ? "name" : prev === "name" ? "date" : "expiry")}
+                        className="font-medium text-primary hover:underline capitalize"
                     >
-                        {sortBy === "expiry"
-                            ? "Expiry Date"
-                            : sortBy === "name"
-                                ? "Name"
-                                : "Date Added"}
+                        {sortBy === "expiry" ? "Expiry Date" : sortBy === "name" ? "Name" : "Date Added"}
                     </button>
                 </div>
 
-                {/* Add Item Form */}
+                {/* Add Item Form Toggle */}
                 {showAddForm && (
-                    <div className="mb-6">
+                    <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
                         <AddItemForm
                             onItemAdded={loadItems}
                             onClose={() => setShowAddForm(false)}
@@ -151,22 +170,15 @@ const Index = () => {
                     </div>
                 )}
 
-                {/* Inventory List */}
+                {/* Inventory List Rendering */}
                 {filteredAndSortedItems.length === 0 ? (
                     <div className="text-center py-16 animate-fade-in">
                         <div className="h-20 w-20 mx-auto rounded-full bg-secondary flex items-center justify-center mb-4">
                             <Package className="h-10 w-10 text-muted-foreground" />
                         </div>
                         <h2 className="font-display text-xl font-semibold text-foreground mb-2">
-                            {searchQuery
-                                ? "No items found"
-                                : "Your inventory is empty"}
+                            {searchQuery ? "No items found" : "Your inventory is empty"}
                         </h2>
-                        <p className="text-muted-foreground mb-6">
-                            {searchQuery
-                                ? "Try a different search term"
-                                : "Start by adding your first item"}
-                        </p>
                         {!searchQuery && !showAddForm && (
                             <Button onClick={() => setShowAddForm(true)}>
                                 <Plus className="h-4 w-4 mr-2" />
@@ -177,10 +189,7 @@ const Index = () => {
                 ) : (
                     <div className="space-y-3">
                         {filteredAndSortedItems.map((item, index) => (
-                            <div
-                                key={item.id}
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
+                            <div key={item.productId || index} className="animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 40}ms` }}>
                                 <InventoryCard
                                     item={item}
                                     onUpdate={loadItems}
@@ -196,10 +205,8 @@ const Index = () => {
             {!showAddForm && (
                 <div className="fixed bottom-6 right-6 z-50">
                     <Button
-                        variant="fab"
-                        size="fab"
                         onClick={() => setShowAddForm(true)}
-                        className="animate-scale-in"
+                        className="h-14 w-14 rounded-full shadow-2xl animate-bounce-in"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>

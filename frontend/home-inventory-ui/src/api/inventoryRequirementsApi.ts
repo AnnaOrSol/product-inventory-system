@@ -1,6 +1,7 @@
 import type { InventoryRequirement } from "@/types/inventoryRequirement";
+import { installationService } from "@/services/installationService"
 
-const INSTALLATION_ID = "11111111-1111-1111-1111-111111111111";
+const INSTALLATION_ID = installationService.getId() || "";
 
 export async function fetchInventoryRequirements(): Promise<InventoryRequirement[]> {
     const res = await fetch("/inventory/requirements/items", {
