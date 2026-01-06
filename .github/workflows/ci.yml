@@ -20,8 +20,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./frontend 
+        working-directory: ./frontend /home-inventory-ui
 
       - name: Run Build
         run: npm run build
-        working-directory: ./frontend
+        working-directory: ./frontend/home-inventory-ui
