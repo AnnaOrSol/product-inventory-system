@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public class CreateInventoryRequiredItemRequest {
-    @NotNull
-    private UUID installationId;
+
     @NotNull
     private Long productId;
     @NotNull
@@ -16,9 +15,6 @@ public class CreateInventoryRequiredItemRequest {
     @Min(1)
     private Integer minimumQuantity;
 
-    public UUID getInstallationId() {
-        return installationId;
-    }
 
     public Long getProductId() {
         return productId;

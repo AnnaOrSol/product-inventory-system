@@ -1,38 +1,47 @@
 import type { InventoryRequirement } from "@/types/inventoryRequirement";
+import { CONFIG } from "@/lib/config"
 import { installationService } from "@/services/installationService"
 
-const INSTALLATION_ID = installationService.getId() || "";
+const API_BASE = CONFIG.INVENTORY_API;
+const getHeaders = () => ({
+    "Content-Type": "application/json",
+    "X-Installation-Id": installationService.getId() || "",
+});
 
 export async function fetchInventoryRequirements(): Promise<InventoryRequirement[]> {
-    const res = await fetch("/inventory/requirements/items", {
-        headers: {
-            "X-Installation-Id": INSTALLATION_ID,
-        },
+    const res = await fetch(`${API_BASE}/inventory/requirements/items`, {
+        headers: getHeaders(),
     });
-
-    if (!res.ok) {
-        throw new Error("Failed to fetch inventory requirements");
-    }
-
+    if (!res.ok) throw new Error("Failed to fetch");
     return res.json();
 }
 
-export async function upsertInventoryRequirement(
-    productId: number,
-    minimumQuantity: number
-) {
-    const res = await fetch("/inventory/requirements", {
-        method: "POST", // or PUT, depending on your backend
-        headers: {
-            "Content-Type": "application/json",
-            "X-Installation-Id": INSTALLATION_ID,
-        },
-        body: JSON.stringify({ productId, minimumQuantity }),
+
+
+export async function addInventoryRequirements(items: Partial<InventoryRequirement>[]) {
+    const res = await fetch(`${API_BASE}/inventory/requirements/batch`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(items),
     });
-
-    if (!res.ok) {
-        throw new Error("Failed to save inventory requirement");
-    }
-
+    if (!res.ok) throw new Error("Failed to save items");
     return res.json();
+}
+
+export async function updateInventoryRequirement(productId: number, minimumQuantity: number) {
+    const res = await fetch(`${API_BASE}/inventory/requirements/${productId}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({ minimumQuantity }),
+    });
+    if (!res.ok) throw new Error("Failed to update item");
+    return res.json();
+}
+
+export async function deleteInventoryRequirement(productId: number) {
+    const res = await fetch(`${API_BASE}/inventory/requirements/${productId}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to delete item");
 }
