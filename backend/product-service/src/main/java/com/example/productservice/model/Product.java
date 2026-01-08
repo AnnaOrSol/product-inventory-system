@@ -14,12 +14,19 @@ public class Product {
     Long id;
     @Column
     String name;
+    @Column(unique=true)
+    String barcode;
     @Column(nullable = true)
     String brand;
     @Column(nullable = true)
     String category;
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+    @Column(name = "image_url")
+    private String imageUrl;
+    @Column(name = "is_official")
+    boolean isOfficial;
+
 
     public Product() {
         this.createdAt = Instant.now();
@@ -55,5 +62,18 @@ public class Product {
     public Instant getCreatedAt() {
         return createdAt;
     }
+    public boolean isOfficial() { return isOfficial; }
 
+    public void setOfficial(boolean official) { isOfficial = official; }
+
+    public String getBarcode() { return barcode; }
+
+    public void setBarcode(String barcode) { this.barcode = barcode; }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
