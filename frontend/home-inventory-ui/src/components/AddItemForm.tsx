@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Minus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { ProductSelect } from "./ProductSelect";
 import { toast } from "sonner";
 import { addInventoryItem } from "@/api/inventoryApi";
 import type { Product } from "@/types/product";
-import { installationService } from "@/services/installationService"
+import { installationService } from "@/services/installationService";
 
 const INSTALLATION_ID = installationService.getId() || "";
 
@@ -24,6 +24,12 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
     const [location, setLocation] = useState("");
     const [notes, setNotes] = useState("");
 
+    const setQuickDate = (days: number) => {
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        setBestByDate(date.toISOString().split('T')[0]);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -31,8 +37,6 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
             toast.error("Please select a product");
             return;
         }
-
-
 
         try {
             const payload: any = {
@@ -57,77 +61,105 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
         }
     };
 
-
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex justify-between">
-                    <CardTitle>Add New Item</CardTitle>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
-                        <X className="h-4 w-4" />
+        <Card className="shadow-lg border-2">
+            <CardHeader className="pb-4">
+                <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl font-bold">Add to Inventory</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+                        <X className="h-5 w-5" />
                     </Button>
                 </div>
             </CardHeader>
 
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <Label>Product</Label>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* בחירת מוצר */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700">Product</Label>
                         <ProductSelect
                             value={selectedProduct?.id ?? null}
                             onChange={setSelectedProduct}
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <Label>Quantity</Label>
-                            <Input
-                                type="number"
-                                min="1"
-                                value={quantity}
-                                onChange={(e) =>
-                                    setQuantity(parseInt(e.target.value, 10) || 1)
-                                }
-                            />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-gray-700">Quantity</Label>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 rounded-full border-2"
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                >
+                                    <Minus className="h-4 w-4" />
+                                </Button>
+                                <Input
+                                    type="number"
+                                    className="text-center text-lg font-bold h-10 w-16"
+                                    value={quantity}
+                                    onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 rounded-full border-2"
+                                    onClick={() => setQuantity(quantity + 1)}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
 
-                        <div>
-                            <Label>Best By Date</Label>
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-orange-600 flex items-center gap-2">
+                                <Calendar className="h-4 w-4" /> Best By Date
+                            </Label>
                             <Input
                                 type="date"
                                 min={today}
+                                className="h-10"
                                 value={bestByDate}
                                 onChange={(e) => setBestByDate(e.target.value)}
                             />
+                            <div className="flex gap-1 pt-1">
+                                <Button type="button" variant="secondary" size="sm" className="text-[10px] h-7 px-2" onClick={() => setQuickDate(7)}>+1W</Button>
+                                <Button type="button" variant="secondary" size="sm" className="text-[10px] h-7 px-2" onClick={() => setQuickDate(14)}>+2W</Button>
+                                <Button type="button" variant="secondary" size="sm" className="text-[10px] h-7 px-2" onClick={() => setQuickDate(30)}>+1M</Button>
+                            </div>
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="location">Location (optional)</Label>
-                        <Input
-                            id="location"
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            placeholder="Fridge / Pantry / Freezer..."
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notes (optional)</Label>
-                        <Input
-                            id="notes"
-                            type="text"
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Any extra info..."
-                        />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="location" className="text-xs">Location</Label>
+                            <Input
+                                id="location"
+                                className="h-9 text-sm"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                placeholder="Fridge, Pantry..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="notes" className="text-xs">Notes</Label>
+                            <Input
+                                id="notes"
+                                className="h-9 text-sm"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Any extra info..."
+                            />
+                        </div>
                     </div>
 
-
-                    <Button type="submit" className="w-full">
-                        <Plus className="h-4 w-4 mr-2" />
+                    <Button type="submit" className="w-full h-12 text-lg font-bold mt-4 shadow-md bg-primary hover:bg-primary/90 transition-all">
+                        <Plus className="h-5 w-5 mr-2" />
                         Add to Inventory
                     </Button>
                 </form>
