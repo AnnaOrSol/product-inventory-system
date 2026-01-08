@@ -2,8 +2,11 @@ package com.example.inventoryservice.service;
 
 import com.example.inventoryservice.dto.CreateInventoryRequiredItemRequest;
 import com.example.inventoryservice.dto.InventoryRequirementsResponse;
+import com.example.inventoryservice.dto.MissingItemDTO;
 import com.example.inventoryservice.dto.UpdateMandatoryInventoryItemRequest;
+import com.example.inventoryservice.model.InventoryItem;
 import com.example.inventoryservice.model.InventoryRequirements;
+import com.example.inventoryservice.repository.InventoryRepository;
 import com.example.inventoryservice.repository.InventoryRequirementsRepository;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -19,11 +23,43 @@ import java.util.stream.Collectors;
 public class InventoryRequirementsService {
 
     private final InventoryRequirementsRepository inventoryRequirementsRepository;
+    private final InventoryRepository inventoryRepository;
     private static final Logger log = LoggerFactory.getLogger(InventoryRequirementsService.class);
 
-    public InventoryRequirementsService(InventoryRequirementsRepository inventoryRequirementsRepository) {
+    public InventoryRequirementsService(InventoryRequirementsRepository inventoryRequirementsRepository, InventoryRepository inventoryRepository) {
         this.inventoryRequirementsRepository = inventoryRequirementsRepository;
+        this.inventoryRepository = inventoryRepository;
     }
+
+    public List<MissingItemDTO> getShoppingList(UUID installationId) {
+        List<InventoryRequirements> requirements = inventoryRequirementsRepository.findAllByInstallationId(installationId);
+
+        List<InventoryItem> currentInventory = inventoryRepository.findAllByInstallationId(installationId);
+
+        return requirements.stream()
+                .map(req -> {
+                    int currentQty = currentInventory.stream()
+                            .filter(item -> item.getProductId().equals(req.getProductId()))
+                            .mapToInt(InventoryItem::getQuantity)
+                            .sum();
+
+                    int missing = req.getMinimumQuantity() - currentQty;
+
+                    if (missing > 0) {
+                        return new MissingItemDTO(
+                                req.getProductId(),
+                                req.getProductName(),
+                                currentQty,
+                                req.getMinimumQuantity(),
+                                missing
+                        );
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
 
     @Transactional(readOnly = true)
     public List<InventoryRequirementsResponse> getItemsForInstallation(UUID installationId) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Package, Search, SlidersHorizontal, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Package, Search, SlidersHorizontal, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryCard } from "@/components/InventoryCard";
@@ -8,8 +9,11 @@ import { LoginScreen } from "@/components/LoginScreen";
 import { fetchInventory } from "@/api/inventoryApi";
 import { installationService } from "@/services/installationService";
 import type { InventoryItem } from "@/types/inventory";
+import { fetchShoppingList } from "@/api/inventoryRequirementsApi";
+
 
 const Index = () => {
+    const navigate = useNavigate();
     const [installationId, setInstallationId] = useState<string | null>(null);
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
@@ -52,6 +56,28 @@ const Index = () => {
         }
     }, [installationId]);
 
+    const handleShareToWhatsApp = async () => {
+        try {
+            const missingItems = await fetchShoppingList();
+
+            if (missingItems.length === 0) {
+                alert("Inventory is full, nothing is missing!");
+                return;
+            }
+
+            let message = "🛒 *Home Shopping List:* \n\n";
+            missingItems.forEach((item: any) => {
+                message += `• *${item.productName}*: Missing ${item.missingQuantity} units (Have: ${item.currentQuantity}, Need: ${item.requiredQuantity})\n`;
+            });
+
+            const encodedMessage = encodeURIComponent(message);
+            const phoneNumber = "972547506539";
+            window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, "_blank");
+        } catch (error) {
+            console.error("Failed to generate shopping list", error);
+            alert("Error fetching the shopping list");
+        }
+    };
     // Filter and Sort Logic
     const filteredAndSortedItems = items
         .filter(item =>
@@ -113,10 +139,29 @@ const Index = () => {
 
                         <div className="flex items-center gap-2">
                             {expiringCount > 0 && (
-                                <div className="bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full text-xs font-medium border border-orange-200">
+                                <div className="bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full text-xs font-medium border border-orange-200 hidden sm:block">
                                     {expiringCount} expiring soon
                                 </div>
                             )}
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleShareToWhatsApp}
+                                title="Share Shopping List"
+                            >
+                                <Package className="h-4 w-4 text-green-600" />
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => navigate("/settings")}
+                                title="Settings"
+                            >
+                                <SettingsIcon className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+
                             <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                                 <LogOut className="h-4 w-4 text-muted-foreground" />
                             </Button>
