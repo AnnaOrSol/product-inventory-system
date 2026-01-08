@@ -23,4 +23,7 @@ public class ProductController {
 
     @GetMapping("/items")
     public List<ProductResponse> getItems(){ return productService.getAllItems();}
+
+    @GetMapping("/barcode/{barcode}")
+    public ProductResponse getProductByBarcode (@PathVariable String barcode) { return productService.getProductByBarcode(barcode);}
 }

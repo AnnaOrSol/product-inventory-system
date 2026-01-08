@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,17 +32,20 @@ public class InventoryRequirementsService {
         this.inventoryRepository = inventoryRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<MissingItemDTO> getShoppingList(UUID installationId) {
+        log.info("Generating shopping list for installationId: {}", installationId);
         List<InventoryRequirements> requirements = inventoryRequirementsRepository.findAllByInstallationId(installationId);
 
         List<InventoryItem> currentInventory = inventoryRepository.findAllByInstallationId(installationId);
 
-        return requirements.stream()
+        // Optimization: Convert inventory list to Map for O(1) access
+        Map<Long, Integer> inventoryMap = currentInventory.stream()
+                .collect(Collectors.groupingBy(InventoryItem::getProductId, Collectors.summingInt(InventoryItem::getQuantity)));
+
+        List<MissingItemDTO> missingItems = requirements.stream()
                 .map(req -> {
-                    int currentQty = currentInventory.stream()
-                            .filter(item -> item.getProductId().equals(req.getProductId()))
-                            .mapToInt(InventoryItem::getQuantity)
-                            .sum();
+                    int currentQty = inventoryMap.getOrDefault(req.getProductId(), 0);
 
                     int missing = req.getMinimumQuantity() - currentQty;
 
@@ -58,6 +62,9 @@ public class InventoryRequirementsService {
                 })
                 .filter(Objects::nonNull)
                 .toList();
+
+        log.info("Found {} missing items for installationId: {}", missingItems.size(), installationId);
+        return missingItems;
     }
 
 
@@ -126,13 +133,20 @@ public class InventoryRequirementsService {
                     return new RuntimeException("Inventory requirement not found for installationId: " + installationId + " and productId: " + productId);
                 });
         
-        if (request.getMinimumQuantity() != null) {
+        boolean isUpdated = false;
+        if (request.getMinimumQuantity() != null && !request.getMinimumQuantity().equals(item.getMinimumQuantity())) {
             item.setMinimumQuantity(request.getMinimumQuantity());
+            isUpdated = true;
         }
         
-        InventoryRequirements saved = inventoryRequirementsRepository.save(item);
-        log.info("Item updated successfully. ID: {}", saved.getId());
-        return mapToResponse(saved);
+        if (isUpdated) {
+            InventoryRequirements saved = inventoryRequirementsRepository.save(item);
+            log.info("Item updated successfully. ID: {}", saved.getId());
+            return mapToResponse(saved);
+        }
+
+        log.info("No changes required for item ID: {}", item.getId());
+        return mapToResponse(item);
     }
 
     @Transactional

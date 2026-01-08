@@ -28,20 +28,42 @@ public class ProductService {
                 product.getId(),
                 product.getName(),
                 product.getBrand(),
+                product.getBarcode(),
                 product.getCategory(),
-                product.getCreatedAt()
+                product.getCreatedAt(),
+                product.getImageUrl(),
+                product.isOfficial()
         );
     }
 
     public List<ProductResponse> getAllItems() {
         List<Product> productList = repository.findAll();
         return productList.stream()
-                .map(product -> new ProductResponse(product.getId(),
+                .map(product -> new ProductResponse(                    product.getId(),
                         product.getName(),
                         product.getBrand(),
+                        product.getBarcode(),
                         product.getCategory(),
-                        product.getCreatedAt()))
+                        product.getCreatedAt(),
+                        product.getImageUrl(),
+                        product.isOfficial()))
                 .toList();
     }
 
+    public ProductResponse getProductByBarcode(String barcode) {
+        Product product = repository.findByBarcode(barcode).orElse(null);
+        if(product != null){
+            return new ProductResponse(
+                    product.getId(),
+                    product.getName(),
+                    product.getBrand(),
+                    product.getBarcode(),
+                    product.getCategory(),
+                    product.getCreatedAt(),
+                    product.getImageUrl(),
+                    product.isOfficial()
+            );
+        }else
+            return null;
+    }
 }

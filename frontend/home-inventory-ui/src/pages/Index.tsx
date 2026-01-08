@@ -72,7 +72,10 @@ const Index = () => {
 
             const encodedMessage = encodeURIComponent(message);
             const phoneNumber = "972547506539";
-            window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, "_blank");
+            //const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+            window.location.href = whatsappUrl;
+            //window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, "_blank");
         } catch (error) {
             console.error("Failed to generate shopping list", error);
             alert("Error fetching the shopping list");
