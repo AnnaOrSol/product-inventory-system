@@ -1,6 +1,7 @@
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Popover,
     PopoverContent,
@@ -20,7 +21,6 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
     const [search, setSearch] = useState("");
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function loadProducts() {
@@ -28,8 +28,8 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                 setLoading(true);
                 const data = await fetchProducts();
                 setProducts(data);
-            } catch {
-                setError("Failed to load products");
+            } catch (err) {
+                console.error("Failed to load products", err);
             } finally {
                 setLoading(false);
             }
@@ -38,10 +38,10 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
     }, []);
 
     const filteredProducts = useMemo(() => {
-        if (!search) return products;
         const lower = search.toLowerCase();
         return products.filter((p) =>
-            p.name.toLowerCase().includes(lower)
+            p.name.toLowerCase().includes(lower) ||
+            (p.brand && p.brand.toLowerCase().includes(lower))
         );
     }, [products, search]);
 
@@ -59,56 +59,62 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                 <Button
                     variant="outline"
                     role="combobox"
-                    aria-expanded={open}
-                    className="w-full justify-between h-11 font-normal"
+                    className="w-full justify-between h-12 text-left font-normal bg-white border-2 shadow-sm rounded-xl"
                 >
-                    {selectedProduct ? selectedProduct.name : "Select a product..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                    <span className="truncate">
+                        {selectedProduct ? selectedProduct.name : "Search or select product..."}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-full p-0" align="start">
-                <div className="max-h-60 overflow-y-auto p-1">
-                    {loading && (
-                        <div className="py-4 text-center text-sm text-muted-foreground">
-                            Loading products...
-                        </div>
-                    )}
+            <PopoverContent className="w-[350px] p-0 bg-white border-2 shadow-xl rounded-xl" align="start">
+                <div className="flex items-center border-b p-3 bg-slate-50/50">
+                    <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
+                    <Input
+                        placeholder="Search product name or brand..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="h-9 w-full border-none bg-transparent focus-visible:ring-0 text-base"
+                        autoFocus
+                    />
+                </div>
 
-                    {!loading && error && (
-                        <div className="py-4 text-center text-sm text-destructive">
-                            {error}
+                <div className="max-h-[300px] overflow-y-auto p-1 scrollbar-thin">
+                    {loading ? (
+                        <div className="py-6 text-center text-sm text-slate-500">Loading catalogue...</div>
+                    ) : filteredProducts.length === 0 ? (
+                        <div className="py-10 text-center text-sm text-slate-400 font-medium">
+                            No product found for "{search}"
                         </div>
-                    )}
-
-                    {!loading && !error && filteredProducts.length === 0 && (
-                        <div className="py-6 text-center text-sm text-muted-foreground">
-                            No products found
-                        </div>
-                    )}
-
-                    {!loading &&
-                        !error &&
+                    ) : (
                         filteredProducts.map((product) => (
                             <button
                                 key={product.id}
+                                type="button"
                                 onClick={() => handleSelect(product)}
                                 className={cn(
-                                    "flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-secondary",
-                                    value === product.id && "bg-secondary"
+                                    "flex w-full items-center rounded-lg px-3 py-3 text-sm transition-all hover:bg-primary/10",
+                                    value === product.id && "bg-primary/5 font-semibold text-primary"
                                 )}
                             >
                                 <Check
                                     className={cn(
-                                        "mr-2 h-4 w-4",
-                                        value === product.id
-                                            ? "opacity-100"
-                                            : "opacity-0"
+                                        "mr-3 h-4 w-4 shrink-0 text-primary",
+                                        value === product.id ? "opacity-100" : "opacity-0"
                                     )}
                                 />
-                                {product.name}
+                                <div className="flex flex-col text-left overflow-hidden">
+                                    <span className="truncate">{product.name}</span>
+                                    {product.brand && (
+                                        <span className="truncate text-[10px] text-slate-400 uppercase tracking-wider">
+                                            {product.brand}
+                                        </span>
+                                    )}
+                                </div>
                             </button>
-                        ))}
+                        ))
+                    )}
                 </div>
             </PopoverContent>
         </Popover>
