@@ -68,8 +68,12 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-[350px] p-0 bg-white border-2 shadow-xl rounded-xl" align="start">
-                <div className="flex items-center border-b p-3 bg-slate-50/50">
+            <PopoverContent
+                className="w-[calc(100vw-2rem)] md:w-[350px] p-0 bg-white border-2 shadow-xl rounded-xl"
+                align="start"
+                sideOffset={5}
+            >
+                <div className="flex items-center border-b p-3 bg-slate-50/50 sticky top-0 z-10">
                     <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                     <Input
                         placeholder="Search product name or brand..."
@@ -80,7 +84,7 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                     />
                 </div>
 
-                <div className="max-h-[300px] overflow-y-auto p-1 scrollbar-thin">
+                <div className="max-h-[250px] overflow-y-auto p-1 scrollbar-thin overscroll-contain">
                     {loading ? (
                         <div className="py-6 text-center text-sm text-slate-500">Loading catalogue...</div>
                     ) : filteredProducts.length === 0 ? (
