@@ -1,7 +1,9 @@
 package com.example.productservice.controller;
 
+import com.example.productservice.dto.CreateNewProductRequest;
 import com.example.productservice.dto.ProductResponse;
 import com.example.productservice.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,4 +28,7 @@ public class ProductController {
 
     @GetMapping("/barcode/{barcode}")
     public ProductResponse getProductByBarcode (@PathVariable String barcode) { return productService.getProductByBarcode(barcode);}
+
+    @PostMapping
+    public ProductResponse addProductWithBarcode (@Valid @RequestBody CreateNewProductRequest request) { return productService.addProductByBarcode(request);}
 }

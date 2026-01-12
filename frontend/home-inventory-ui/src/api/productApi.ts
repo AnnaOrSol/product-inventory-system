@@ -12,3 +12,21 @@ export async function fetchProducts(): Promise<Product[]> {
 
     return res.json();
 }
+
+export async function createProduct(productData: {
+    name: string;
+    brand: string;
+    barcode: string;
+    category: string;
+    createdAt: string;
+    imageUrl: string;
+    isOfficial: boolean;
+}) {
+    const response = await fetch(`${PRODUCT_API}/product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productData),
+    });
+    if (!response.ok) throw new Error("Failed to create product");
+    return response.json();
+}

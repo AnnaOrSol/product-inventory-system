@@ -1,5 +1,6 @@
 package com.example.productservice.service;
 
+import com.example.productservice.dto.CreateNewProductRequest;
 import com.example.productservice.dto.ProductResponse;
 import com.example.productservice.model.Product;
 import org.slf4j.Logger;
@@ -65,5 +66,27 @@ public class ProductService {
             );
         }else
             return null;
+    }
+
+    public ProductResponse addProductByBarcode(CreateNewProductRequest request) {
+        Product product = new Product();
+        product.setBarcode(request.getBarcode());
+        product.setName(request.getName());
+        product.setBrand(request.getBrand());
+        product.setCategory(request.getCategory());
+        product.setOfficial(false);
+
+        Product saved = repository.save(product);
+        log.info("Item {} added successfully", saved.getId());
+        return new ProductResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getBrand(),
+                saved.getBarcode(),
+                saved.getCategory(),
+                saved.getCreatedAt(),
+                saved.getImageUrl(),
+                saved.isOfficial()
+        );
     }
 }
