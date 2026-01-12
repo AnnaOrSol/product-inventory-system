@@ -37,6 +37,8 @@ interface InventoryCardProps {
 
 export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps) {
     const [isEditing, setIsEditing] = useState(false);
+    const [pressedAction, setPressedAction] = useState<"plus" | "minus" | null>(null);
+
     const [editData, setEditData] = useState({
         productId: item.productId,
         productName: item.productName,
@@ -48,7 +50,10 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     const isValidBestByDate = bestByDate !== null && isValid(bestByDate);
     const daysUntilExpiry = isValidBestByDate ? differenceInDays(bestByDate, new Date()) : null;
     const isExpired = isValidBestByDate ? isPast(bestByDate) && !isToday(bestByDate) : false;
-    const isExpiringSoon = isValidBestByDate && daysUntilExpiry !== null ? daysUntilExpiry <= 3 && daysUntilExpiry >= 0 : false;
+    const isExpiringSoon =
+        isValidBestByDate && daysUntilExpiry !== null
+            ? daysUntilExpiry <= 3 && daysUntilExpiry >= 0
+            : false;
 
     const getExpiryStatus = () => {
         if (!isValidBestByDate) return { label: "No expiry date", color: "text-muted-foreground", bg: "bg-muted/10" };
@@ -60,22 +65,17 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
 
     const status = getExpiryStatus();
 
-    const handleQuickUpdate = async (newQuantity: number) => {
+    const handleQuickUpdate = async (newQuantity: number, action: "plus" | "minus") => {
         if (newQuantity < 0) return;
 
-        // ניסיון הפעלת רטט משופר
-        try {
-            if (window.navigator && window.navigator.vibrate) {
-                window.navigator.vibrate([30]);
-            }
-        } catch (e) {
-            console.log("Vibration blocked or not supported");
-        }
+        // Micro-interaction
+        setPressedAction(action);
+        setTimeout(() => setPressedAction(null), 180);
 
         try {
             await updateInventoryItem(item.productId, {
                 ...editData,
-                quantity: newQuantity
+                quantity: newQuantity,
             });
             onUpdate();
         } catch (e) {
@@ -89,7 +89,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
             setIsEditing(false);
             onUpdate();
             toast.success("Updated successfully");
-        } catch (e) {
+        } catch {
             toast.error("Failed to save changes");
         }
     };
@@ -115,20 +115,20 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
 
     if (isEditing) {
         return (
-            <Card className="animate-scale-in border-primary/20 shadow-md mx-auto w-full max-w-full">
+            <Card className="animate-scale-in border-primary/20 shadow-md mx-auto w-full">
                 <CardContent className="p-4 space-y-4">
-                    {/* בחירת מוצר */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             Product
                         </label>
                         <ProductSelect
                             value={editData.productId}
-                            onChange={(product) => setEditData({ ...editData, productId: product.id, productName: product.name })}
+                            onChange={(product) =>
+                                setEditData({ ...editData, productId: product.id, productName: product.name })
+                            }
                         />
                     </div>
 
-                    {/* סידור אנכי למניעת חריגה מהמסך */}
                     <div className="flex flex-col gap-4">
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -139,7 +139,9 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                                 min="1"
                                 className="h-11 border-2 rounded-xl w-full"
                                 value={editData.quantity}
-                                onChange={(e) => setEditData({ ...editData, quantity: parseInt(e.target.value, 10) || 1 })}
+                                onChange={(e) =>
+                                    setEditData({ ...editData, quantity: parseInt(e.target.value, 10) || 1 })
+                                }
                             />
                         </div>
 
@@ -151,17 +153,15 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                                 type="date"
                                 className="h-11 border-2 rounded-xl w-full bg-white"
                                 value={editData.bestByDate ?? ""}
-                                onChange={(e) => setEditData({ ...editData, bestByDate: e.target.value || null })}
+                                onChange={(e) =>
+                                    setEditData({ ...editData, bestByDate: e.target.value || null })
+                                }
                             />
                         </div>
                     </div>
 
-                    {/* כפתורי פעולה */}
                     <div className="flex gap-2 pt-2">
-                        <Button
-                            onClick={handleSave}
-                            className="flex-1 h-11 rounded-xl font-semibold"
-                        >
+                        <Button onClick={handleSave} className="flex-1 h-11 rounded-xl font-semibold">
                             <Check className="h-4 w-4 mr-2" /> Save
                         </Button>
                         <Button
@@ -178,34 +178,54 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     }
 
     return (
-        <Card className={cn(
-            "animate-slide-up transition-all duration-200 hover:shadow-soft",
-            isExpired && "border-destructive/30 bg-destructive/5",
-            isExpiringSoon && !isExpired && "border-warning/30 bg-warning/5"
-        )}>
+        <Card
+            className={cn(
+                "animate-slide-up transition-all duration-200 hover:shadow-soft",
+                isExpired && "border-destructive/30 bg-destructive/5",
+                isExpiringSoon && !isExpired && "border-warning/30 bg-warning/5"
+            )}
+        >
             <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <Package className="h-4 w-4 text-primary shrink-0" />
-                            <h3 className="font-semibold text-foreground truncate">{item.productName}</h3>
+                            <h3 className="font-semibold truncate">{item.productName}</h3>
                         </div>
 
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm text-muted-foreground font-medium">Qty:</span>
-                                <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border shadow-sm">
+
+                                <div
+                                    className={cn(
+                                        "flex items-center rounded-lg p-0.5 border shadow-sm transition-all",
+                                        pressedAction && "bg-primary/10 animate-pulse"
+                                    )}
+                                >
                                     <button
-                                        onClick={() => handleQuickUpdate(item.quantity - 1)}
+                                        onClick={() => handleQuickUpdate(item.quantity - 1, "minus")}
                                         disabled={item.quantity <= 0}
-                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-destructive disabled:opacity-50 transition-all active:scale-95"
+                                        className={cn(
+                                            "w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm transition-all",
+                                            "active:scale-90",
+                                            pressedAction === "minus" && "scale-90 text-destructive"
+                                        )}
                                     >
                                         <Minus className="h-3.5 w-3.5" />
                                     </button>
-                                    <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
+
+                                    <span className="w-8 text-center font-bold text-sm">
+                                        {item.quantity}
+                                    </span>
+
                                     <button
-                                        onClick={() => handleQuickUpdate(item.quantity + 1)}
-                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-primary transition-all active:scale-95"
+                                        onClick={() => handleQuickUpdate(item.quantity + 1, "plus")}
+                                        className={cn(
+                                            "w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm transition-all",
+                                            "active:scale-90",
+                                            pressedAction === "plus" && "scale-90 text-primary"
+                                        )}
                                     >
                                         <Plus className="h-3.5 w-3.5" />
                                     </button>
@@ -219,18 +239,36 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                         </div>
 
                         <div className="mt-2">
-                            <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium", status.bg, status.color)}>
-                                {(isExpired || isExpiringSoon) && <AlertTriangle className="h-3 w-3" />}
+                            <span
+                                className={cn(
+                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                                    status.bg,
+                                    status.color
+                                )}
+                            >
+                                {(isExpired || isExpiringSoon) && (
+                                    <AlertTriangle className="h-3 w-3" />
+                                )}
                                 {status.label}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-9 w-9 text-muted-foreground hover:text-foreground">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsEditing(true)}
+                            className="h-9 w-9"
+                        >
                             <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleDelete} className="h-9 w-9 text-muted-foreground hover:text-destructive">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleDelete}
+                            className="h-9 w-9 text-destructive"
+                        >
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
