@@ -1,40 +1,52 @@
-import { useEffect } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useEffect, useRef } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface BarcodeScannerProps {
     onScanSuccess: (decodedText: string) => void;
 }
 
 export function BarcodeScanner({ onScanSuccess }: BarcodeScannerProps) {
-    useEffect(() => {
-        const scanner = new Html5QrcodeScanner(
-            "reader",
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 150 },
-                aspectRatio: 1.0
-            },
-            false
-        );
+    const scannerRef = useRef<Html5Qrcode | null>(null);
 
-        scanner.render(
-            (decodedText) => {
-                scanner.clear();
-                onScanSuccess(decodedText);
-            },
-            (error) => {
+    useEffect(() => {
+        scannerRef.current = new Html5Qrcode("reader");
+
+        const startScanner = async () => {
+            try {
+                await scannerRef.current?.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 150 },
+                    },
+                    (decodedText) => {
+                        onScanSuccess(decodedText);
+                    },
+                    () => { }
+                );
+            } catch (err) {
+                console.error("Failed to start scanner:", err);
             }
-        );
+        };
+
+        startScanner();
 
         return () => {
-            scanner.clear().catch(e => console.error("Scanner cleanup failed", e));
+            if (scannerRef.current?.isScanning) {
+                scannerRef.current.stop().then(() => {
+                    scannerRef.current?.clear();
+                }).catch(err => console.error("Failed to stop scanner", err));
+            }
         };
     }, [onScanSuccess]);
 
     return (
-        <div className="relative w-full overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20">
-            <div id="reader" className="w-full"></div>
-            <p className="p-2 text-center text-xs text-muted-foreground">Position the barcode inside the frame</p>
+        <div className="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border-2 border-primary/20 bg-black/5">
+            <div id="reader" className="w-full h-[250px]"></div>
+            <div className="absolute inset-0 pointer-events-none border-[2px] border-blue-500/50 m-12 rounded-lg shadow-[0_0_0_999px_rgba(0,0,0,0.4)]"></div>
+            <p className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-white bg-black/50 py-1">
+                Align barcode within the frame
+            </p>
         </div>
     );
 }

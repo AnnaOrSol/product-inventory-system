@@ -71,7 +71,7 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
         toast.info(`Scanned Barcode: ${barcode}`);
 
         try {
-            const response = await fetch(`${API_BASE}/products/barcode/${barcode}`);
+            const response = await fetch(`${API_BASE}/product/barcode/${barcode}`);
             if (response.ok) {
                 const product = await response.json();
                 setSelectedProduct(product);
@@ -80,6 +80,7 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
                 toast.error("Product not found in system");
             }
         } catch (err) {
+            console.error("Search error:", err);
             toast.error("Failed to fetch product info");
         }
     };
