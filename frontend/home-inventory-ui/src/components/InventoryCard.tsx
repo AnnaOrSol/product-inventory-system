@@ -63,9 +63,13 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     const handleQuickUpdate = async (newQuantity: number) => {
         if (newQuantity < 0) return;
 
-        // Haptic Feedback
-        if (window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate(10);
+        // ניסיון הפעלת רטט משופר
+        try {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate([30]);
+            }
+        } catch (e) {
+            console.log("Vibration blocked or not supported");
         }
 
         try {
@@ -80,9 +84,14 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     };
 
     const handleSave = async () => {
-        await updateInventoryItem(item.productId, editData);
-        setIsEditing(false);
-        onUpdate();
+        try {
+            await updateInventoryItem(item.productId, editData);
+            setIsEditing(false);
+            onUpdate();
+            toast.success("Updated successfully");
+        } catch (e) {
+            toast.error("Failed to save changes");
+        }
     };
 
     const handleDelete = async () => {
@@ -106,8 +115,9 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
 
     if (isEditing) {
         return (
-            <Card className="animate-scale-in border-primary/20 shadow-md mx-1">
+            <Card className="animate-scale-in border-primary/20 shadow-md mx-auto w-full max-w-full">
                 <CardContent className="p-4 space-y-4">
+                    {/* בחירת מוצר */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             Product
@@ -118,7 +128,8 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                         />
                     </div>
 
-                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+                    {/* סידור אנכי למניעת חריגה מהמסך */}
+                    <div className="flex flex-col gap-4">
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                                 Quantity
@@ -126,7 +137,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                             <Input
                                 type="number"
                                 min="1"
-                                className="h-11 border-2 rounded-xl focus-visible:ring-primary/20"
+                                className="h-11 border-2 rounded-xl w-full"
                                 value={editData.quantity}
                                 onChange={(e) => setEditData({ ...editData, quantity: parseInt(e.target.value, 10) || 1 })}
                             />
@@ -138,24 +149,25 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                             </label>
                             <Input
                                 type="date"
-                                className="h-11 border-2 rounded-xl focus-visible:ring-primary/20 w-full"
+                                className="h-11 border-2 rounded-xl w-full bg-white"
                                 value={editData.bestByDate ?? ""}
                                 onChange={(e) => setEditData({ ...editData, bestByDate: e.target.value || null })}
                             />
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-2">
+                    {/* כפתורי פעולה */}
+                    <div className="flex gap-2 pt-2">
                         <Button
                             onClick={handleSave}
-                            className="flex-1 h-11 rounded-xl shadow-sm hover:shadow-md transition-all font-semibold"
+                            className="flex-1 h-11 rounded-xl font-semibold"
                         >
                             <Check className="h-4 w-4 mr-2" /> Save
                         </Button>
                         <Button
                             onClick={handleCancel}
                             variant="outline"
-                            className="flex-1 h-11 rounded-xl border-2 hover:bg-slate-50 font-semibold"
+                            className="flex-1 h-11 rounded-xl border-2 font-semibold"
                         >
                             <X className="h-4 w-4 mr-2" /> Cancel
                         </Button>
@@ -186,14 +198,14 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                                     <button
                                         onClick={() => handleQuickUpdate(item.quantity - 1)}
                                         disabled={item.quantity <= 0}
-                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-destructive disabled:opacity-50 transition-all active:scale-90"
+                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-destructive disabled:opacity-50 transition-all active:scale-95"
                                     >
                                         <Minus className="h-3.5 w-3.5" />
                                     </button>
                                     <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
                                     <button
                                         onClick={() => handleQuickUpdate(item.quantity + 1)}
-                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-primary transition-all active:scale-90"
+                                        className="w-7 h-7 flex items-center justify-center bg-white rounded-md shadow-sm hover:text-primary transition-all active:scale-95"
                                     >
                                         <Plus className="h-3.5 w-3.5" />
                                     </button>
