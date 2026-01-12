@@ -10,33 +10,37 @@ export function BarcodeScanner({ onScanSuccess }: BarcodeScannerProps) {
 
     useEffect(() => {
         const scannerId = "reader";
-        scannerRef.current = new Html5Qrcode(scannerId);
+
+        scannerRef.current = new Html5Qrcode(scannerId, {
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E,
+            ],
+            verbose: false
+        });
 
         const startScanner = async () => {
             try {
-                const formatsToSupport = [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                ];
-
                 await scannerRef.current?.start(
                     { facingMode: "environment" },
                     {
-                        fps: 20,
-                        qrbox: { width: 280, height: 150 },
+                        fps: 15,
+                        qrbox: { width: 250, height: 150 },
                     },
                     (decodedText) => {
-                        onScanSuccess(decodedText);
+                        if (scannerRef.current?.isScanning) {
+                            scannerRef.current.stop().then(() => {
+                                onScanSuccess(decodedText);
+                            });
+                        }
                     },
                     () => { }
                 );
             } catch (err) {
-                console.error("Failed to start scanner:", err);
+                console.error("Scanner start error:", err);
             }
         };
 
@@ -44,17 +48,16 @@ export function BarcodeScanner({ onScanSuccess }: BarcodeScannerProps) {
 
         return () => {
             if (scannerRef.current?.isScanning) {
-                scannerRef.current.stop()
-                    .then(() => scannerRef.current?.clear())
-                    .catch(err => console.error("Failed to stop scanner", err));
+                scannerRef.current.stop().catch(err => console.error("Stop error", err));
             }
         };
     }, [onScanSuccess]);
 
     return (
-        <div className="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border-2 border-primary/20 bg-black">
-            <div id="reader" className="w-full h-[250px]"></div>
-            <div className="absolute inset-0 pointer-events-none border-[2px] border-blue-500/50 m-16 rounded-lg shadow-[0_0_0_999px_rgba(0,0,0,0.5)]"></div>
+        <div className="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border-4 border-primary">
+            <div id="reader" className="w-full bg-black"></div>
+            <div className="absolute inset-0 border-2 border-red-500 opacity-50 pointer-events-none m-auto w-[250px] h-[150px]"></div>
+            <p className="text-center bg-primary text-white text-xs py-1">align the bacode inside the frame</p>
         </div>
     );
 }
