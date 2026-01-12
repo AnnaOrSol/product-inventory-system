@@ -9,7 +9,7 @@ const INSTALLATION_ID = installationService.getId() || "";
 export async function fetchInventory(): Promise<InventoryItem[]> {
     const res = await fetch(`${API_BASE}/inventory/items`, {
         headers: {
-            "X-Installation-Id": INSTALLATION_ID,
+            "X-Installation-Id": installationService.getId() || "",
         },
     });
 
@@ -53,7 +53,7 @@ export async function updateInventoryItem(
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "X-Installation-Id": INSTALLATION_ID,
+            "X-Installation-Id": installationService.getId() || "",
         },
         body: JSON.stringify(updates),
     });
@@ -70,7 +70,7 @@ export async function deleteInventoryItem(productId: number) {
     const res = await fetch(`${API_BASE}/inventory/${productId}`, {
         method: "DELETE",
         headers: {
-            "X-Installation-Id": INSTALLATION_ID,
+            "X-Installation-Id": installationService.getId() || "",
         },
     });
 

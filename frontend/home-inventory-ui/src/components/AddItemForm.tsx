@@ -46,7 +46,7 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
 
         try {
             const payload: any = {
-                installationId: INSTALLATION_ID,
+                installationId: installationService.getId() || "",
                 productId: selectedProduct.id,
                 productName: selectedProduct.name,
                 quantity,
