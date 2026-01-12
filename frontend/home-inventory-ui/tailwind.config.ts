@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
     darkMode: "class",
-    content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+    content: [
+        "./pages/**/*.{ts,tsx}",
+        "./components/**/*.{ts,tsx}",
+        "./app/**/*.{ts,tsx}",
+        "./src/**/*.{ts,tsx}",
+    ],
     prefix: "",
     theme: {
         container: {
@@ -14,8 +19,8 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['Plus Jakarta Sans', 'sans-serif'],
-                display: ['Outfit', 'sans-serif'],
+                sans: ["Plus Jakarta Sans", "sans-serif"],
+                display: ["Outfit", "sans-serif"],
             },
             colors: {
                 border: "hsl(var(--border))",
@@ -71,6 +76,10 @@ export default {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
+
+            /* =========================
+               🔥 Micro-interactions
+               ========================= */
             keyframes: {
                 "accordion-down": {
                     from: { height: "0" },
@@ -80,10 +89,27 @@ export default {
                     from: { height: "var(--radix-accordion-content-height)" },
                     to: { height: "0" },
                 },
+
+                tap: {
+                    "0%": {
+                        transform: "scale(1)",
+                        backgroundColor: "rgba(59,130,246,0.12)",
+                    },
+                    "50%": {
+                        transform: "scale(0.9)",
+                        backgroundColor: "rgba(59,130,246,0.22)",
+                    },
+                    "100%": {
+                        transform: "scale(1)",
+                        backgroundColor: "rgba(59,130,246,0.12)",
+                    },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
+
+                tap: "tap 180ms ease-out",
             },
         },
     },
