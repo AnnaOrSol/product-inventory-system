@@ -5,8 +5,10 @@ import com.example.productservice.dto.ProductResponse;
 import com.example.productservice.model.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.example.productservice.repository.ProductRepository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -52,20 +54,20 @@ public class ProductService {
     }
 
     public ProductResponse getProductByBarcode(String barcode) {
-        Product product = repository.findByBarcode(barcode).orElse(null);
-        if(product != null){
-            return new ProductResponse(
-                    product.getId(),
-                    product.getName(),
-                    product.getBrand(),
-                    product.getBarcode(),
-                    product.getCategory(),
-                    product.getCreatedAt(),
-                    product.getImageUrl(),
-                    product.isOfficial()
-            );
-        }else
-            return null;
+        return repository.findByBarcode(barcode)
+                .map(product -> new ProductResponse(
+                        product.getId(),
+                        product.getName(),
+                        product.getBrand(),
+                        product.getBarcode(),
+                        product.getCategory(),
+                        product.getCreatedAt(),
+                        product.getImageUrl(),
+                        product.isOfficial()
+                ))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Product with barcode " + barcode + " not found"
+                ));
     }
 
     public ProductResponse addProductByBarcode(CreateNewProductRequest request) {

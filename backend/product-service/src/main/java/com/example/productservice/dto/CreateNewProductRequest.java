@@ -1,5 +1,6 @@
 package com.example.productservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 public class CreateNewProductRequest {
@@ -12,6 +13,7 @@ public class CreateNewProductRequest {
     @NotNull
     private String category;
     private String imageUrl;
+    @JsonProperty("isOfficial")
     private boolean isOfficial;
 
 
@@ -23,7 +25,7 @@ public class CreateNewProductRequest {
     public void setCategory(String category) { this.category = category; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setOfficial(boolean official) { isOfficial = official; }
-    
+
     public String getName() {
         return name;
     }
