@@ -44,15 +44,19 @@ export function RequirementSelectionGrid({ availableProducts, onItemsAdded }: Pr
         try {
             const payload = Object.entries(selectedItems).map(([id, data]) => ({
                 productId: Number(id),
+                productName: data.name,
                 minimumQuantity: data.qty
             }));
+
+            console.log("Sending payload:", payload);
 
             await addInventoryRequirements(payload);
             toast.success(`${payload.length} Items added to the list`);
             setSelectedItems({});
             onItemsAdded();
         } catch (error) {
-            toast.error("Failed to save items");
+            console.error("Save error details:", error);
+            toast.error("Failed to save items - check the DB");
         } finally {
             setIsSaving(false);
         }
