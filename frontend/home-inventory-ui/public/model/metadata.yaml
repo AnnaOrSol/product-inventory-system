@@ -1,0 +1,26 @@
+description: Ultralytics best model trained on /content/home_inventory_detector-2/data.yaml
+author: Ultralytics
+date: '2026-01-13T16:21:39.169738'
+version: 8.3.253
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: DoveRefreshing body wash cucumber
+  1: Eggs L
+  2: Lenor Unstoppables Perfume Pearls Ariel Scent 495gr
+  3: Milk 3 Tnuva
+  4: Paper Towels Rami Levy
+  5: Techina Yerushalayim 500gr
+  6: Whipping Cream 38 Tnuva
+args:
+  batch: 1
+  half: false
+  int8: false
+  nms: false
+channels: 3

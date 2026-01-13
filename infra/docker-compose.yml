@@ -37,7 +37,9 @@ services:
 
   product-service:
     container_name: product_service
-    build: ../backend/product-service
+    build:
+      context: ../backend/product-service
+      dockerfile: Dockerfile_backup
     depends_on:
       postgres-product:
         condition: service_healthy
@@ -50,7 +52,9 @@ services:
 
   inventory-service:
     container_name: inventory_service
-    build: ../backend/inventory-service
+    build:
+      context: ../backend/inventory-service
+      dockerfile: Dockerfile_backup
     depends_on:
       postgres-inventory:
         condition: service_healthy

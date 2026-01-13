@@ -1,22 +1,32 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Package, Search, SlidersHorizontal, LogOut, Settings as SettingsIcon } from "lucide-react";
+import {
+    Plus,
+    Package,
+    Search,
+    SlidersHorizontal,
+    LogOut,
+    Settings as SettingsIcon,
+    Camera,
+    X
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryCard } from "@/components/InventoryCard";
 import { AddItemForm } from "@/components/AddItemForm";
 import { LoginScreen } from "@/components/LoginScreen";
+import { Scanner } from "@/components/Scanner";
 import { fetchInventory } from "@/api/inventoryApi";
 import { installationService } from "@/services/installationService";
 import type { InventoryItem } from "@/types/inventory";
 import { fetchShoppingList } from "@/api/inventoryRequirementsApi";
-
 
 const Index = () => {
     const navigate = useNavigate();
     const [installationId, setInstallationId] = useState<string | null>(null);
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"name" | "date" | "expiry">("expiry");
     const [loading, setLoading] = useState(true);
@@ -72,15 +82,14 @@ const Index = () => {
 
             const encodedMessage = encodeURIComponent(message);
             const phoneNumber = "972547506539";
-            //const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
             const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
             window.location.href = whatsappUrl;
-            //window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, "_blank");
         } catch (error) {
             console.error("Failed to generate shopping list", error);
             alert("Error fetching the shopping list");
         }
     };
+
     // Filter and Sort Logic
     const filteredAndSortedItems = items
         .filter(item =>
@@ -97,7 +106,6 @@ const Index = () => {
                     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
                     return dateB - dateA;
                 case "expiry":
-                    // Items without expiry date go to the bottom
                     const expA = a.bestBefore ? new Date(a.bestBefore).getTime() : Infinity;
                     const expB = b.bestBefore ? new Date(b.bestBefore).getTime() : Infinity;
                     return expA - expB;
@@ -141,27 +149,27 @@ const Index = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowScanner(!showScanner)}
+                                className={showScanner ? "text-red-500" : "text-primary"}
+                                title={showScanner ? "Close Scanner" : "AI Scanner"}
+                            >
+                                {showScanner ? <X className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
+                            </Button>
+
                             {expiringCount > 0 && (
                                 <div className="bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full text-xs font-medium border border-orange-200 hidden sm:block">
                                     {expiringCount} expiring soon
                                 </div>
                             )}
 
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleShareToWhatsApp}
-                                title="Share Shopping List"
-                            >
+                            <Button variant="ghost" size="icon" onClick={handleShareToWhatsApp} title="Share Shopping List">
                                 <Package className="h-4 w-4 text-green-600" />
                             </Button>
 
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => navigate("/settings")}
-                                title="Settings"
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} title="Settings">
                                 <SettingsIcon className="h-4 w-4 text-muted-foreground" />
                             </Button>
 
@@ -174,87 +182,103 @@ const Index = () => {
             </header>
 
             <main className="container py-6 pb-24">
-                {/* Search and Sort Controls */}
-                <div className="flex gap-2 mb-6">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search inventory..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() =>
-                            setSortBy(prev => prev === "expiry" ? "name" : prev === "name" ? "date" : "expiry")
-                        }
-                        className="shrink-0"
-                    >
-                        <SlidersHorizontal className="h-4 w-4" />
-                    </Button>
-                </div>
-
-                {/* Sort indicator */}
-                <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
-                    <span>Sorted by:</span>
-                    <button
-                        onClick={() => setSortBy(prev => prev === "expiry" ? "name" : prev === "name" ? "date" : "expiry")}
-                        className="font-medium text-primary hover:underline capitalize"
-                    >
-                        {sortBy === "expiry" ? "Expiry Date" : sortBy === "name" ? "Name" : "Date Added"}
-                    </button>
-                </div>
-
-                {/* Add Item Form Toggle */}
-                {showAddForm && (
-                    <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <AddItemForm
-                            onItemAdded={loadItems}
-                            onClose={() => setShowAddForm(false)}
-                        />
-                    </div>
-                )}
-
-                {/* Inventory List Rendering */}
-                {filteredAndSortedItems.length === 0 ? (
-                    <div className="text-center py-16 animate-fade-in">
-                        <div className="h-20 w-20 mx-auto rounded-full bg-secondary flex items-center justify-center mb-4">
-                            <Package className="h-10 w-10 text-muted-foreground" />
-                        </div>
-                        <h2 className="font-display text-xl font-semibold text-foreground mb-2">
-                            {searchQuery ? "No items found" : "Your inventory is empty"}
-                        </h2>
-                        {!searchQuery && !showAddForm && (
-                            <Button onClick={() => setShowAddForm(true)}>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Your First Item
+                {showScanner ? (
+                    <div className="animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold">AI Product Scanner</h2>
+                            <Button variant="outline" size="sm" onClick={() => setShowScanner(false)}>
+                                Back to List
                             </Button>
-                        )}
+                        </div>
+                        <Scanner />
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {filteredAndSortedItems.map((item, index) => (
-                            <div key={item.productId || index} className="animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 40}ms` }}>
-                                <InventoryCard
-                                    item={item}
-                                    onUpdate={loadItems}
-                                    onDeleted={handleItemDeleted}
+                    <>
+                        {/* Search and Sort Controls */}
+                        <div className="flex gap-2 mb-6">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search inventory..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    className="pl-10"
                                 />
                             </div>
-                        ))}
-                    </div>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() =>
+                                    setSortBy(prev => prev === "expiry" ? "name" : prev === "name" ? "date" : "expiry")
+                                }
+                                className="shrink-0"
+                            >
+                                <SlidersHorizontal className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        {/* Add Item Form */}
+                        {showAddForm && (
+                            <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <AddItemForm
+                                    onItemAdded={loadItems}
+                                    onClose={() => setShowAddForm(false)}
+                                />
+                            </div>
+                        )}
+
+                        {/* Inventory List */}
+                        {filteredAndSortedItems.length === 0 ? (
+                            <div className="text-center py-16 animate-fade-in">
+                                <div className="h-20 w-20 mx-auto rounded-full bg-secondary flex items-center justify-center mb-4">
+                                    <Package className="h-10 w-10 text-muted-foreground" />
+                                </div>
+                                <h2 className="font-display text-xl font-semibold text-foreground mb-2">
+                                    {searchQuery ? "No items found" : "Your inventory is empty"}
+                                </h2>
+                                {!searchQuery && !showAddForm && (
+                                    <div className="flex gap-2 justify-center">
+                                        <Button onClick={() => setShowAddForm(true)}>
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Manual Add
+                                        </Button>
+                                        <Button variant="outline" onClick={() => setShowScanner(true)}>
+                                            <Camera className="h-4 w-4 mr-2" />
+                                            Scan Item
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {filteredAndSortedItems.map((item, index) => (
+                                    <div key={item.productId || index} className="animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${index * 40}ms` }}>
+                                        <InventoryCard
+                                            item={item}
+                                            onUpdate={loadItems}
+                                            onDeleted={handleItemDeleted}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
 
-            {/* Floating Action Button */}
-            {!showAddForm && (
-                <div className="fixed bottom-6 right-6 z-50">
+            {/* Floating Action Buttons */}
+            {!showAddForm && !showScanner && (
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+                    <Button
+                        onClick={() => setShowScanner(true)}
+                        className="h-14 w-14 rounded-full shadow-2xl bg-primary text-primary-foreground hover:bg-primary/90"
+                        title="Scan with AI"
+                    >
+                        <Camera className="h-6 w-6" />
+                    </Button>
                     <Button
                         onClick={() => setShowAddForm(true)}
-                        className="h-14 w-14 rounded-full shadow-2xl animate-bounce-in"
+                        className="h-14 w-14 rounded-full shadow-2xl"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>
