@@ -96,22 +96,10 @@ export const Scanner: React.FC = () => {
     const processOutput = async (res: tf.Tensor) => {
         const processedData = tf.tidy(() => {
             const transRes = res.transpose([0, 2, 1]);
-            const boxes = tf.tidy(() => {
-                const b = transRes.slice([0, 0, 0], [-1, -1, 4]);
-                const x = b.slice([0, 0, 0], [-1, -1, 1]);
-                const y = b.slice([0, 0, 1], [-1, -1, 1]);
-                const w = b.slice([0, 0, 2], [-1, -1, 1]);
-                const h = b.slice([0, 0, 3], [-1, -1, 1]);
-                return tf.concat([
-                    y.sub(h.div(2)).div(640),
-                    x.sub(w.div(2)).div(640),
-                    y.add(h.div(2)).div(640),
-                    x.add(w.div(2)).div(640)
-                ], 2);
-            });
+            const boxes = tf.slice(transRes, [0, 0, 0], [-1, -1, 4]);
 
-            const scores = transRes.slice([0, 0, 4], [-1, -1, LABELS.length]).max(2);
-            const classes = transRes.slice([0, 0, 4], [-1, -1, LABELS.length]).argMax(2);
+            const scores = tf.max(tf.slice(transRes, [0, 0, 4], [-1, -1, -1]), 2);
+            const classes = tf.argMax(tf.slice(transRes, [0, 0, 4], [-1, -1, -1]), 2);
 
             return {
                 boxes: boxes.reshape([-1, 4]) as tf.Tensor2D,
@@ -128,28 +116,27 @@ export const Scanner: React.FC = () => {
             0.4
         );
 
-        const selectedBoxes = processedData.boxes.gather(nmsIndices).dataSync();
-        const selectedScores = processedData.scores.gather(nmsIndices).dataSync();
-        const selectedClasses = processedData.classes.gather(nmsIndices).dataSync();
+        const selectedBoxes = await processedData.boxes.gather(nmsIndices).data();
+        const selectedScores = await processedData.scores.gather(nmsIndices).data();
+        const selectedClasses = await processedData.classes.gather(nmsIndices).data();
 
         processedData.boxes.dispose();
         processedData.scores.dispose();
         processedData.classes.dispose();
+        nmsIndices.dispose();
 
         const results = [];
-        for (let i = 0; i < nmsIndices.size; i++) {
+        for (let i = 0; i < selectedScores.length; i++) {
             const [y1, x1, y2, x2] = selectedBoxes.slice(i * 4, (i + 1) * 4);
             results.push({
                 bbox: [x1, y1, x2 - x1, y2 - y1],
                 score: selectedScores[i],
-                classId: selectedClasses[i]
+                classId: selectedClasses[i],
             });
         }
 
-        nmsIndices.dispose();
         return results;
     };
-
     return (
         <div className="flex flex-col items-center p-4 bg-gray-900 min-h-screen font-sans">
             <div className="bg-white/10 p-6 rounded-3xl shadow-xl border border-white/20 backdrop-blur-md w-full max-w-lg">
