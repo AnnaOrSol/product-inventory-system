@@ -11,22 +11,27 @@ const LABELS = [
     "Whipping Cream 38 Tnuva"
 ];
 
+// Disable TFJS warnings in console
+tf.env().set('DEBUG', false);
+
 export const Scanner: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [model, setModel] = useState<tf.GraphModel | null>(null);
     const [loading, setLoading] = useState(true);
+    const [predictionCount, setPredictionCount] = useState(0);
 
     useEffect(() => {
         const loadModel = async () => {
             try {
                 await tf.ready();
+                // Ensure the path matches your public folder structure
                 const yolomodel = await tf.loadGraphModel('/model/model.json');
                 setModel(yolomodel);
                 setLoading(false);
-                console.log("🚀 model loaded successfully!");
+                console.log("🚀 AI Model loaded successfully!");
             } catch (e) {
-                console.error("❌error loading model:", e);
+                console.error("❌ Error loading model:", e);
             }
         };
         loadModel();
@@ -36,13 +41,19 @@ export const Scanner: React.FC = () => {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({
                 audio: false,
-                video: { facingMode: 'environment' }
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
             }).then(stream => {
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
-                    videoRef.current.onloadedmetadata = () => detectFrame();
+                    videoRef.current.onloadedmetadata = () => {
+                        detectFrame();
+                    };
                 }
-            });
+            }).catch(err => console.error("Camera access error:", err));
         }
     }, [model]);
 
@@ -54,6 +65,7 @@ export const Scanner: React.FC = () => {
         const ctx = canvas.getContext('2d');
 
         if (ctx && video.videoWidth > 0) {
+            // Match canvas size to video stream size
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
 
@@ -65,25 +77,46 @@ export const Scanner: React.FC = () => {
                     .expandDims(0);
             });
 
+            // Using execute instead of executeAsync to avoid control flow warnings
             const res = model.execute(input) as tf.Tensor;
             const predictions = await processOutput(res);
-            console.log("Predictions found:", predictions.length);
+
+            setPredictionCount(predictions.length);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             predictions.forEach(pred => {
                 const [x, y, w, h] = pred.bbox;
-                const label = LABELS[pred.classId];
 
+                // Scale coordinates from 640x640 to actual canvas size
+                // YOLOv8 usually returns normalized coordinates [0, 1] 
+                // but if yours are [0, 640], we divide by 640 first
+                const scaleX = canvas.width / 640;
+                const scaleY = canvas.height / 640;
+
+                const rectX = x * scaleX;
+                const rectY = y * scaleY;
+                const rectW = w * scaleX;
+                const rectH = h * scaleY;
+
+                // Draw Bounding Box
                 ctx.strokeStyle = '#00FF00';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(x * canvas.width, y * canvas.height, w * canvas.width, h * canvas.height);
+                ctx.lineWidth = 4;
+                ctx.strokeRect(rectX, rectY, rectW, rectH);
+
+                // Draw Label Background
+                const label = LABELS[pred.classId] || "Unknown";
+                const score = Math.round(pred.score * 100);
+                const text = `${label} (${score}%)`;
+
+                ctx.font = 'bold 20px Arial';
+                const textWidth = ctx.measureText(text).width;
 
                 ctx.fillStyle = '#00FF00';
-                ctx.font = 'bold 18px Arial';
-                const text = `${label} (${Math.round(pred.score * 100)}%)`;
-                ctx.fillRect(x * canvas.width, y * canvas.height - 25, ctx.measureText(text).width + 10, 25);
+                ctx.fillRect(rectX, rectY - 30, textWidth + 10, 30);
+
+                // Draw Text
                 ctx.fillStyle = 'black';
-                ctx.fillText(text, x * canvas.width + 5, y * canvas.height - 7);
+                ctx.fillText(text, rectX + 5, rectY - 8);
             });
 
             tf.dispose(res);
@@ -110,9 +143,9 @@ export const Scanner: React.FC = () => {
         const nmsIndices = await tf.image.nonMaxSuppressionAsync(
             processedData.boxes,
             processedData.scores,
-            20,
-            0.5,
-            0.4
+            15,    // Max objects
+            0.45,  // IOU threshold
+            0.35   // Score threshold
         );
 
         const selectedBoxes = await processedData.boxes.gather(nmsIndices).data();
@@ -136,17 +169,27 @@ export const Scanner: React.FC = () => {
 
         return results;
     };
+
     return (
         <div className="flex flex-col items-center p-4 bg-gray-900 min-h-screen font-sans">
             <div className="bg-white/10 p-6 rounded-3xl shadow-xl border border-white/20 backdrop-blur-md w-full max-w-lg">
-                <h2 className="text-white text-center text-2xl mb-6 font-light tracking-widest uppercase">Inventory Scanner</h2>
+                <h2 className="text-white text-center text-2xl mb-6 font-light tracking-widest uppercase">AI Inventory Scanner</h2>
 
                 <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-inner border border-gray-700">
-                    <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                    <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" />
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="absolute inset-0 w-full h-full object-cover z-10"
+                    />
+                    <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                    />
 
                     {loading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-30">
                             <div className="w-12 h-12 border-4 border-t-green-500 border-gray-600 rounded-full animate-spin mb-4"></div>
                             <p className="text-white text-sm animate-pulse">Initializing AI Neural Network...</p>
                         </div>
@@ -155,12 +198,12 @@ export const Scanner: React.FC = () => {
 
                 <div className="mt-8 grid grid-cols-2 gap-4">
                     <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                        <p className="text-gray-400 text-xs uppercase">Target Products</p>
-                        <p className="text-white text-lg font-bold">{LABELS.length}</p>
+                        <p className="text-gray-400 text-xs uppercase">Detected Items</p>
+                        <p className="text-white text-lg font-bold">{predictionCount}</p>
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                        <p className="text-gray-400 text-xs uppercase">Status</p>
-                        <p className="text-green-400 text-lg font-bold">{loading ? 'Loading' : 'Live'}</p>
+                        <p className="text-gray-400 text-xs uppercase">Engine Status</p>
+                        <p className="text-green-400 text-lg font-bold">{loading ? 'Warming Up' : 'Active'}</p>
                     </div>
                 </div>
             </div>
