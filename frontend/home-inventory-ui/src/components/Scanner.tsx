@@ -65,10 +65,9 @@ export const Scanner: React.FC = () => {
                     .expandDims(0);
             });
 
-            const res = await model.executeAsync(input) as tf.Tensor;
-
+            const res = model.execute(input) as tf.Tensor;
             const predictions = await processOutput(res);
-
+            console.log("Predictions found:", predictions.length);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             predictions.forEach(pred => {
