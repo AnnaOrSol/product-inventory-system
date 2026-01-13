@@ -40,23 +40,31 @@ export function RequirementSelectionGrid({ availableProducts, onItemsAdded }: Pr
     }, [selectedItems]);
 
     const handleBulkSave = async () => {
+        const itemsToSave = Object.entries(selectedItems);
+        if (itemsToSave.length === 0) return;
+
         setIsSaving(true);
+        console.log("Starting batch save process...");
+
         try {
-            const payload = Object.entries(selectedItems).map(([id, data]) => ({
+            const payload = itemsToSave.map(([id, data]) => ({
                 productId: Number(id),
                 productName: data.name,
                 minimumQuantity: data.qty
             }));
 
-            console.log("Sending payload:", payload);
+            console.log("Payload prepared for backend:", payload);
 
             await addInventoryRequirements(payload);
-            toast.success(`${payload.length} Items added to the list`);
+
+            console.log("Batch save successful!");
+            toast.success(`Successfully added ${payload.length} items`);
+
             setSelectedItems({});
             onItemsAdded();
         } catch (error) {
-            console.error("Save error details:", error);
-            toast.error("Failed to save items - check the DB");
+            console.error("Batch Save Error:", error);
+            toast.error("Failed to save items. Please check if the server is updated.");
         } finally {
             setIsSaving(false);
         }
