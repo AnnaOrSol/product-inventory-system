@@ -7,4 +7,5 @@ export interface Product {
     createdAt: string;
     imageUrl: string;
     isOfficial: boolean;
+    aliases?: string[];
 }

@@ -20,6 +20,10 @@ import { fetchInventory } from "@/api/inventoryApi";
 import { installationService } from "@/services/installationService";
 import type { InventoryItem } from "@/types/inventory";
 import { fetchShoppingList } from "@/api/inventoryRequirementsApi";
+import { VoiceInventoryButton } from "@/components/VoiceInventoryButton";
+import { fetchProducts } from "@/api/productApi";
+import type { Product } from "@/types/product";
+
 
 const Index = () => {
     const navigate = useNavigate();
@@ -30,6 +34,7 @@ const Index = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"name" | "date" | "expiry">("expiry");
     const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState<Product[]>([]);
 
     // Initial load: check for saved session
     useEffect(() => {
@@ -65,6 +70,25 @@ const Index = () => {
             loadItems();
         }
     }, [installationId]);
+
+    useEffect(() => {
+        const aliasMap: Record<string, string[]> = {
+            "Milk 3% Tnuva": ["חלב", "חלב תנובה", "חלב שלוש", "חלב 3"],
+            "Paper Towels": ["נייר סופג", "מגבות נייר"],
+            "Eggs L": ["ביצים", "ביצים גדולות"],
+        };
+
+        fetchProducts().then(ps =>
+            setProducts(
+                ps.map(p => ({
+                    ...p,
+                    aliases: aliasMap[p.name] || []
+                }))
+            )
+        );
+    }, []);
+
+
 
     const handleShareToWhatsApp = async () => {
         try {
@@ -268,7 +292,12 @@ const Index = () => {
 
             {/* Floating Action Buttons */}
             {!showAddForm && !showScanner && (
-                <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-center">
+
+                    {/* Voice Inventory */}
+                    <VoiceInventoryButton products={products} />
+
+                    {/* Scanner */}
                     <Button
                         onClick={() => setShowScanner(true)}
                         className="h-14 w-14 rounded-full shadow-2xl bg-primary text-primary-foreground hover:bg-primary/90"
@@ -276,14 +305,18 @@ const Index = () => {
                     >
                         <Camera className="h-6 w-6" />
                     </Button>
+
+                    {/* Manual Add */}
                     <Button
                         onClick={() => setShowAddForm(true)}
                         className="h-14 w-14 rounded-full shadow-2xl"
+                        title="Add manually"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>
                 </div>
             )}
+
         </div>
     );
 };
