@@ -81,7 +81,6 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
                 ...newProductData,
                 barcode: scannedBarcode,
                 createdAt: new Date().toISOString(),
-                isOfficial: false,
                 imageUrl: newProductData.imageUrl || "https://placehold.co/100x100?text=No+Image"
             });
 

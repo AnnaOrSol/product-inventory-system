@@ -34,8 +34,7 @@ public class ProductService {
                 product.getBarcode(),
                 product.getCategory(),
                 product.getCreatedAt(),
-                product.getImageUrl(),
-                product.isOfficial()
+                product.getImageUrl()
         );
     }
 
@@ -48,8 +47,7 @@ public class ProductService {
                         product.getBarcode(),
                         product.getCategory(),
                         product.getCreatedAt(),
-                        product.getImageUrl(),
-                        product.isOfficial()))
+                        product.getImageUrl()))
                 .toList();
     }
 
@@ -62,8 +60,7 @@ public class ProductService {
                         product.getBarcode(),
                         product.getCategory(),
                         product.getCreatedAt(),
-                        product.getImageUrl(),
-                        product.isOfficial()
+                        product.getImageUrl()
                 ))
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Product with barcode " + barcode + " not found"
@@ -76,7 +73,7 @@ public class ProductService {
         product.setName(request.getName());
         product.setBrand(request.getBrand());
         product.setCategory(request.getCategory());
-        product.setOfficial(false);
+
 
         Product saved = repository.save(product);
         log.info("Item {} added successfully", saved.getId());
@@ -87,8 +84,7 @@ public class ProductService {
                 saved.getBarcode(),
                 saved.getCategory(),
                 saved.getCreatedAt(),
-                saved.getImageUrl(),
-                saved.isOfficial()
+                saved.getImageUrl()
         );
     }
 }
