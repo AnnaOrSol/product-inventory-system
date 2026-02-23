@@ -30,7 +30,7 @@ This system is built as microservices communicating via REST:
 
 **Frontend** communicates with the backend via REST.  
 **Database**: PostgreSQL.  
-**Containerization**: Docker. :contentReference[oaicite:2]{index=2}
+**Containerization**: Docker.
 
 
 ---
@@ -41,16 +41,14 @@ This system is built as microservices communicating via REST:
 - **Database**: PostgreSQL
 - **Infra**: Docker / Docker Compose
 
-(Repo languages include TypeScript + Java as the main ones.) :contentReference[oaicite:3]{index=3}
-
 ---
 
 ## 📁 Repository Structure
 ├── backend/ # Spring Boot services (Product + Inventory)
-├── frontend/home-inventory-ui/ # React + TypeScript UI
-└── infra/ # Docker / Compose / infra-related configs
 
-:contentReference[oaicite:4]{index=4}
+├── frontend/home-inventory-ui/ # React + TypeScript UI
+
+└── infra/ # Docker / Compose / infra-related configs
 
 ---
 
