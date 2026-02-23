@@ -24,8 +24,6 @@ public class Product {
     private Instant createdAt;
     @Column(name = "image_url")
     private String imageUrl;
-    @Column(name = "is_official")
-    boolean isOfficial;
 
 
     public Product() {
@@ -62,9 +60,6 @@ public class Product {
     public Instant getCreatedAt() {
         return createdAt;
     }
-    public boolean isOfficial() { return isOfficial; }
-
-    public void setOfficial(boolean official) { isOfficial = official; }
 
     public String getBarcode() { return barcode; }
 

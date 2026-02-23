@@ -20,7 +20,6 @@ export async function createProduct(productData: {
     category: string;
     createdAt: string;
     imageUrl: string;
-    isOfficial: boolean;
 }) {
     const response = await fetch(`${PRODUCT_API}/product`, {
         method: "POST",

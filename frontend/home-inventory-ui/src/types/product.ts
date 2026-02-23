@@ -6,6 +6,5 @@ export interface Product {
     category: string;
     createdAt: string;
     imageUrl: string;
-    isOfficial: boolean;
     aliases?: string[];
 }

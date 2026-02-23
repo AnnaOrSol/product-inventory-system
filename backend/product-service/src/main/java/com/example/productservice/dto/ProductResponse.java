@@ -13,9 +13,8 @@ public class ProductResponse {
     private String category;
     private Instant createdAt;
     private String imageUrl;
-    private boolean isOfficial;
 
-    public ProductResponse(Long id, String name, String brand, String barcode, String category, Instant createdAt, String imageUrl, boolean isOfficial){
+    public ProductResponse(Long id, String name, String brand, String barcode, String category, Instant createdAt, String imageUrl){
         this.id= id;
         this.name=name;
         this.brand=brand;
@@ -23,7 +22,6 @@ public class ProductResponse {
         this.category=category;
         this.createdAt=createdAt;
         this.imageUrl = imageUrl;
-        this.isOfficial = isOfficial;
     }
 
     public Long getId() {
@@ -54,7 +52,4 @@ public class ProductResponse {
         return imageUrl;
     }
 
-    public boolean isOfficial() {
-        return isOfficial;
-    }
 }
