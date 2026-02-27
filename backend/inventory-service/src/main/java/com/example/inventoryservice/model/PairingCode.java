@@ -6,18 +6,17 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "pairing_codes")
+@Table(name = "pairing_codes",
+        indexes = @Index(name = "idx_pairing_codes_expires_at", columnList = "expires_at"))
 public class PairingCode {
 
 
     @Id
-    @Column(length = 10)
-    private String code;
-
-
     @Column(name = "installation_id", nullable = false)
     private UUID installationId;
 
+    @Column(name ="code", length = 10, nullable = false, unique = true)
+    private String code;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
