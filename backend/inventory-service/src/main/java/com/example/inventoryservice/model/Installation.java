@@ -23,7 +23,6 @@ public class Installation {
 
     public Installation(UUID id) {
         this.id = id;
-        this.createdAt = Instant.now();
     }
 
 

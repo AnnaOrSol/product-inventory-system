@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class InventoryResponse {
+public class InventoryItemResponse {
     private final Long id;
     private final UUID installationId;
     private final Long productId;
@@ -16,7 +16,7 @@ public class InventoryResponse {
     private final Instant updatedAt;
     private final LocalDate bestBefore;
 
-    public InventoryResponse(Long id, UUID installationId, Long productId, String productName, Integer quantity, String location, String notes, Instant createdAt, Instant updatedAt, LocalDate bestBefore) {
+    public InventoryItemResponse(Long id, UUID installationId, Long productId, String productName, Integer quantity, String location, String notes, Instant createdAt, Instant updatedAt, LocalDate bestBefore) {
         this.id = id;
         this.installationId = installationId;
         this.productId = productId;

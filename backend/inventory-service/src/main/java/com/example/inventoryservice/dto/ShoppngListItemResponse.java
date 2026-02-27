@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MissingItemDTO {
+public class ShoppngListItemResponse {
     private Long productId;
     private String productName;
     private Integer currentQuantity;
