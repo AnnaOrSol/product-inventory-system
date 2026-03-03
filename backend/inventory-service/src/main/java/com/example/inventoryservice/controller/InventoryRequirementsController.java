@@ -63,7 +63,7 @@ public class InventoryRequirementsController {
             @PathVariable Long productId) {
         log.info("Deleting requirement for product: {}", productId);
         inventoryRequirementsService.deleteItem(installationId, productId);
-        return ResponseEntity.noContent().build(); // מחזיר 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/shopping-list")

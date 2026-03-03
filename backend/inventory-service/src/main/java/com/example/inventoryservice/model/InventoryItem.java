@@ -19,13 +19,13 @@ public class InventoryItem {
     private Long productId;
     @Column(name = "product_name", nullable = false)
     private String productName;
-    @Column(nullable = false)
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
-    @Column(length = 1000)
+    @Column(name = "location", length = 1000)
     private String location;
-    @Column(length = 1000)
+    @Column(name = "notes", length = 1000)
     private String notes;
-    @Column(nullable = false, name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -105,4 +105,6 @@ public class InventoryItem {
     public void setBestBefore(LocalDate bestBefore) {
         this.bestBefore = bestBefore;
     }
+
+
 }
