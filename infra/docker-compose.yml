@@ -65,6 +65,17 @@ services:
       SPRING_DATASOURCE_USERNAME: inventory_user
       SPRING_DATASOURCE_PASSWORD: inventory_pass
 
+  gateway-service:
+    container_name: gateway_service
+    build:
+      context: ../backend/gateway-service
+      dockerfile: Dockerfile
+    depends_on:
+      - product-service
+      - inventory-service
+    ports:
+      - "8087:8087"
+
 volumes:
   pgdata_product:
   pgdata_inventory:
