@@ -1,15 +1,15 @@
 import type { InventoryRequirement } from "@/types/inventoryRequirement";
-import { CONFIG } from "@/lib/config"
+import { API_PATHS } from "@/lib/config"
 import { installationService } from "@/services/installationService"
 
-const API_BASE = CONFIG.INVENTORY_API;
+const API_BASE = API_PATHS.INVENTORY_API;
 const getHeaders = () => ({
     "Content-Type": "application/json",
     "X-Installation-Id": installationService.getId() || "",
 });
 
 export async function fetchInventoryRequirements(): Promise<InventoryRequirement[]> {
-    const res = await fetch(`${API_BASE}/inventory/requirements/items`, {
+    const res = await fetch(`${API_BASE}/requirements/items`, {
         headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch");
@@ -17,7 +17,7 @@ export async function fetchInventoryRequirements(): Promise<InventoryRequirement
 }
 
 export async function fetchShoppingList(): Promise<any[]> {
-    const res = await fetch(`${API_BASE}/inventory/requirements/shopping-list`, {
+    const res = await fetch(`${API_BASE}/requirements/shopping-list`, {
         headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch shopping list");
@@ -25,7 +25,7 @@ export async function fetchShoppingList(): Promise<any[]> {
 }
 
 export async function addInventoryRequirements(items: Partial<InventoryRequirement>[]) {
-    const res = await fetch(`${API_BASE}/inventory/requirements/batch`, {
+    const res = await fetch(`${API_BASE}/requirements/batch`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(items),
@@ -35,7 +35,7 @@ export async function addInventoryRequirements(items: Partial<InventoryRequireme
 }
 
 export async function updateInventoryRequirement(productId: number, minimumQuantity: number) {
-    const res = await fetch(`${API_BASE}/inventory/requirements/${productId}`, {
+    const res = await fetch(`${API_BASE}/requirements/${productId}`, {
         method: "PUT",
         headers: getHeaders(),
         body: JSON.stringify({ minimumQuantity }),
@@ -45,7 +45,7 @@ export async function updateInventoryRequirement(productId: number, minimumQuant
 }
 
 export async function deleteInventoryRequirement(productId: number) {
-    const res = await fetch(`${API_BASE}/inventory/requirements/${productId}`, {
+    const res = await fetch(`${API_BASE}/requirements/${productId}`, {
         method: "DELETE",
         headers: getHeaders(),
     });

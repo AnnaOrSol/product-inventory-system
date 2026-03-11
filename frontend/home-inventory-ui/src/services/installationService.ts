@@ -1,7 +1,7 @@
 // src/services/installationService.ts
-import { CONFIG } from "@/lib/config"
+import { API_PATHS } from "@/lib/config"
 
-const API_URL = CONFIG.INSTALLATIONS_API;
+const API_URL = API_PATHS.INSTALLATIONS_API;
 
 export interface CreateInstallationResponse {
     installationId: string;

@@ -15,7 +15,6 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequestMapping("/inventory/requirements")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class InventoryRequirementsController {
 

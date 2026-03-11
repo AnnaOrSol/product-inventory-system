@@ -11,9 +11,9 @@ import { createProduct } from "@/api/productApi";
 import type { Product } from "@/types/product";
 import { installationService } from "@/services/installationService";
 import { BarcodeScanner } from "./BarcodeScanner";
-import { CONFIG } from "@/lib/config";
+import { API_PATHS } from "@/lib/config";
 
-const API_BASE = CONFIG.PRODUCT_API;
+const API_BASE = API_PATHS.PRODUCT_API;
 
 interface AddItemFormProps {
     onItemAdded: () => void;
@@ -53,7 +53,7 @@ export function AddItemForm({ onItemAdded, onClose }: AddItemFormProps) {
         toast.info(`Scanned: ${barcode}`);
 
         try {
-            const response = await fetch(`${API_BASE}/product/barcode/${barcode}`);
+            const response = await fetch(`${API_BASE}/barcode/${barcode}`);
             if (response.ok) {
                 const product = await response.json();
                 setSelectedProduct(product);
