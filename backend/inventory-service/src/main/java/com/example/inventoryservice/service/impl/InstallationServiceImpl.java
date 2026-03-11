@@ -5,6 +5,8 @@ import com.example.inventoryservice.model.Installation;
 import com.example.inventoryservice.model.PairingCode;
 import com.example.inventoryservice.repository.InstallationRepository;
 import com.example.inventoryservice.repository.PairingCodeRepository;
+import com.example.inventoryservice.security.CurrentUserService;
+import com.example.inventoryservice.service.InstallationMemberService;
 import com.example.inventoryservice.service.InstallationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,25 +24,33 @@ public class InstallationServiceImpl implements InstallationService {
 
     private final InstallationRepository installationRepository;
     private final PairingCodeRepository pairingCodeRepository;
+    private final InstallationMemberService installationMemberService;
+    private final CurrentUserService currentUserService;
 
     private static final Duration PAIRING_CODE_TTL = Duration.ofMinutes(15);
 
     @Override
     @Transactional
-    public CreateInstallationResponse createInstallation() {
+    public CreateInstallationResponse createInstallation(String name) {
         log.info("Creating new installation");
 
+        UUID currentUserId = currentUserService.getCurrentUserId();
+
         UUID installationId = UUID.randomUUID();
-        Installation installation = new Installation(installationId);
+        Installation installation = new Installation(installationId, name);
         installationRepository.save(installation);
+
+        installationMemberService.addOwnerToInstallation(installationId, currentUserId);
 
         return createAndSavePairingCode(installationId);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public UUID joinByPairingCode(String code) {
         log.info("Attempting to join with code: {}", code);
+
+        UUID currentUserId = currentUserService.getCurrentUserId();
 
         PairingCode pairingCode = pairingCodeRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid pairing code"));
@@ -50,7 +60,13 @@ public class InstallationServiceImpl implements InstallationService {
             throw new IllegalStateException("Pairing code expired");
         }
 
-        return pairingCode.getInstallationId();
+        UUID installationId = pairingCode.getInstallationId();
+
+        if (!installationMemberService.isMember(installationId, currentUserId)) {
+            installationMemberService.addMemberToInstallation(installationId, currentUserId);
+        }
+
+        return installationId;
     }
 
     @Override

@@ -13,6 +13,9 @@ public class Installation {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -21,8 +24,9 @@ public class Installation {
     }
 
 
-    public Installation(UUID id) {
+    public Installation(UUID id, String name) {
         this.id = id;
+        this.name = name;
     }
 
 
@@ -36,6 +40,10 @@ public class Installation {
 
     public UUID getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Instant getCreatedAt() {

@@ -1,10 +1,10 @@
 import { Product } from "@/types/product";
-import { CONFIG } from "@/lib/config"
+import { API_PATHS } from "@/lib/config"
 
-const PRODUCT_API = CONFIG.PRODUCT_API;
+const PRODUCT_API = API_PATHS.PRODUCT_API;
 
 export async function fetchProducts(): Promise<Product[]> {
-    const res = await fetch(`${PRODUCT_API}/product/items`);
+    const res = await fetch(`${PRODUCT_API}/items`);
 
     if (!res.ok) {
         throw new Error(`Failed to fetch products: ${res.status}`);
@@ -21,7 +21,7 @@ export async function createProduct(productData: {
     createdAt: string;
     imageUrl: string;
 }) {
-    const response = await fetch(`${PRODUCT_API}/product`, {
+    const response = await fetch(`${PRODUCT_API}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),

@@ -1,5 +1,6 @@
 package com.example.inventoryservice.controller;
 
+import com.example.inventoryservice.dto.CreateInstallationRequest;
 import com.example.inventoryservice.dto.CreateInstallationResponse;
 import com.example.inventoryservice.dto.GeneratePairCodeRequest;
 import com.example.inventoryservice.dto.JoinInstallationRequest;
@@ -14,15 +15,14 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/installations")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class InstallationController {
 
     private final InstallationService installationService;
 
     @PostMapping
-    public ResponseEntity<CreateInstallationResponse> createInstallation() {
-        CreateInstallationResponse result = installationService.createInstallation();
+    public ResponseEntity<CreateInstallationResponse> createInstallation(@RequestBody CreateInstallationRequest request) {
+        CreateInstallationResponse result = installationService.createInstallation(request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 

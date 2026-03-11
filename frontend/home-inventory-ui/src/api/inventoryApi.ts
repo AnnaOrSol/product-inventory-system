@@ -1,13 +1,13 @@
 import { InventoryItem } from "@/types/inventory";
-import { CONFIG } from "@/lib/config"
+import { API_PATHS } from "@/lib/config"
 import { installationService } from "@/services/installationService"
 
-const API_BASE = CONFIG.INVENTORY_API;
+const API_BASE = API_PATHS.INVENTORY_API;
 const INSTALLATION_ID = installationService.getId() || "";
 
 // GET
 export async function fetchInventory(): Promise<InventoryItem[]> {
-    const res = await fetch(`${API_BASE}/inventory/items`, {
+    const res = await fetch(`${API_BASE}/items`, {
         headers: {
             "X-Installation-Id": installationService.getId() || "",
         },
@@ -30,7 +30,7 @@ export function addInventoryItem(data: {
     location?: string;
     notes?: string;
 }) {
-    return fetch(`${API_BASE}/inventory`, {
+    return fetch(`${API_BASE}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -49,7 +49,7 @@ export async function updateInventoryItem(
     productId: number,
     updates: Partial<InventoryItem>
 ) {
-    const res = await fetch(`${API_BASE}/inventory/${productId}`, {
+    const res = await fetch(`${API_BASE}/${productId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export async function updateInventoryItem(
 
 // DELETE
 export async function deleteInventoryItem(productId: number) {
-    const res = await fetch(`${API_BASE}/inventory/${productId}`, {
+    const res = await fetch(`${API_BASE}/${productId}`, {
         method: "DELETE",
         headers: {
             "X-Installation-Id": installationService.getId() || "",
