@@ -1,13 +1,17 @@
 package com.example.inventoryservice.service.impl;
 
+import com.example.inventoryservice.dto.InstallationMemberResponse;
+import com.example.inventoryservice.dto.MyInstallationResponse;
 import com.example.inventoryservice.model.InstallationMember;
 import com.example.inventoryservice.model.InstallationRole;
 import com.example.inventoryservice.repository.InstallationMemberRepository;
+import com.example.inventoryservice.security.CurrentUserService;
 import com.example.inventoryservice.service.InstallationMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -15,6 +19,7 @@ import java.util.UUID;
 public class InstallationMemberServiceImpl implements InstallationMemberService {
 
     private final InstallationMemberRepository installationMemberRepository;
+    private final CurrentUserService currentUserService;
 
     @Override
     public void addOwnerToInstallation(UUID installationId, UUID userId) {
@@ -44,6 +49,26 @@ public class InstallationMemberServiceImpl implements InstallationMemberService 
         member.setUpdatedAt(now);
 
         installationMemberRepository.save(member);
+    }
+
+    @Override
+    public List<InstallationMemberResponse> getInstallationsForUser() {
+        UUID userId = currentUserService.getCurrentUserId();
+        return installationMemberRepository.findAllByUserId(userId)
+                .stream()
+                .map(member -> new InstallationMemberResponse(
+                        member.getInstallationId(),
+                        member.getUserId(),
+                        member.getRole(),
+                        member.getJoinedAt()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<MyInstallationResponse> getMyInstallations() {
+        UUID userId = currentUserService.getCurrentUserId();
+        return installationMemberRepository.findMyInstallationsByUserId(userId);
     }
 
     @Override

@@ -1,3 +1,4 @@
+/*
 import * as React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -96,7 +97,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     </div>
                 )}
 
-                {/* מצב התחברות ישירה עם UUID */}
+                
                 {view === "direct" && (
                     <div className="space-y-6">
                         <div className="text-center">
@@ -115,3 +116,5 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         </div>
     );
 };
+
+*/
