@@ -1,27 +1,19 @@
 import { InventoryItem } from "@/types/inventory";
-import { API_PATHS } from "@/lib/config"
-import { installationService } from "@/services/installationService"
+import { API_PATHS } from "@/lib/config";
+import { apiFetch } from "@/api/apiClient";
+import { installationService } from "@/services/installationService";
 
 const API_BASE = API_PATHS.INVENTORY_API;
-const INSTALLATION_ID = installationService.getId() || "";
 
-// GET
 export async function fetchInventory(): Promise<InventoryItem[]> {
-    const res = await fetch(`${API_BASE}/items`, {
+    return apiFetch(`${API_BASE}/items`, {
         headers: {
             "X-Installation-Id": installationService.getId() || "",
         },
     });
-
-    if (!res.ok) {
-        throw new Error(`Failed to fetch inventory: ${res.status}`);
-    }
-
-    return res.json();
 }
 
-// POST
-export function addInventoryItem(data: {
+export async function addInventoryItem(data: {
     installationId: string;
     productId: number;
     productName: string;
@@ -30,51 +22,30 @@ export function addInventoryItem(data: {
     location?: string;
     notes?: string;
 }) {
-    return fetch(`${API_BASE}`, {
+    return apiFetch(`${API_BASE}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-    }).then((res) => {
-        if (!res.ok) {
-            throw new Error("Failed to add inventory item");
-        }
-        return res.json();
     });
 }
 
-
-
-// PUT
 export async function updateInventoryItem(
     productId: number,
     updates: Partial<InventoryItem>
 ) {
-    const res = await fetch(`${API_BASE}/${productId}`, {
+    return apiFetch(`${API_BASE}/${productId}`, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json",
             "X-Installation-Id": installationService.getId() || "",
         },
         body: JSON.stringify(updates),
     });
-
-    if (!res.ok) {
-        throw new Error(`Failed to update item: ${res.status}`);
-    }
-
-    return res.json();
 }
 
-// DELETE
 export async function deleteInventoryItem(productId: number) {
-    const res = await fetch(`${API_BASE}/${productId}`, {
+    return apiFetch(`${API_BASE}/${productId}`, {
         method: "DELETE",
         headers: {
             "X-Installation-Id": installationService.getId() || "",
         },
     });
-
-    if (!res.ok) {
-        throw new Error("Failed to delete inventory item");
-    }
 }
