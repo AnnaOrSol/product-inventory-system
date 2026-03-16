@@ -7,7 +7,7 @@ const InventoryRequirementsPage = () => {
 
             <section className="border rounded-lg p-4">
                 <h2 className="text-lg font-semibold mb-3">
-                    Minimum stock / requirements
+                    Minimum stock / generic product requirements
                 </h2>
 
                 <InventoryRequirementsList />

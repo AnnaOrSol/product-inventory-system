@@ -46,22 +46,31 @@ public class InventoryRequirementsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/{genericProductId}")
     public ResponseEntity<InventoryRequirementsResponse> update(
             @RequestHeader("X-Installation-Id") UUID installationId,
-            @PathVariable Long productId,
+            @PathVariable Long genericProductId,
             @RequestBody UpdateInventoryRequirementsRequest request) {
-        log.info("Updating requirement for product: {} in installation: {}", productId, installationId);
-        InventoryRequirementsResponse response = inventoryRequirementsService.updateItem(installationId, productId, request);
+        log.info("Updating requirement for generic product: {} in installation: {}", genericProductId, installationId);
+        InventoryRequirementsResponse response = inventoryRequirementsService.updateItem(installationId, genericProductId, request);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/{genericProductId}")
     public ResponseEntity<Void> delete(
             @RequestHeader("X-Installation-Id") UUID installationId,
-            @PathVariable Long productId) {
-        log.info("Deleting requirement for product: {}", productId);
-        inventoryRequirementsService.deleteItem(installationId, productId);
+            @PathVariable Long genericProductId) {
+        log.info("Deleting requirement for generic product: {}", genericProductId);
+        inventoryRequirementsService.deleteItem(installationId, genericProductId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/batch")
+    public ResponseEntity<Void> deleteBatch(
+            @RequestHeader("X-Installation-Id") UUID installationId,
+            @RequestBody List<Long> genericProductIds) {
+        log.info("Deleting {} requirements for installation: {}", genericProductIds.size(), installationId);
+        inventoryRequirementsService.deleteItems(installationId, genericProductIds);
         return ResponseEntity.noContent().build();
     }
 

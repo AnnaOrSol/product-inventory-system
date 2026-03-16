@@ -9,16 +9,18 @@ import java.util.UUID;
 
 public interface InventoryRequirementsRepository extends JpaRepository<InventoryRequirements, Long> {
     List<InventoryRequirements> findAllByInstallationId(UUID installationId);
-    
-    Optional<InventoryRequirements> findByInstallationIdAndProductId(
+
+    Optional<InventoryRequirements> findByInstallationIdAndGenericProductId(
             UUID installationId,
-            Long productId
-    );
-    
-    List<InventoryRequirements> findByInstallationIdAndProductIdIn(
-            UUID installationId,
-            List<Long> productIds
+            Long genericProductId
     );
 
-    void deleteByInstallationIdAndProductId(UUID installationId, Long productId);
+    List<InventoryRequirements> findByInstallationIdAndGenericProductIdIn(
+            UUID installationId,
+            List<Long> genericProductIds
+    );
+
+    void deleteByInstallationIdAndGenericProductId(UUID installationId, Long genericProductId);
+
+    void deleteAllByInstallationIdAndGenericProductIdIn(UUID installationId, List<Long> genericProductIds);
 }
