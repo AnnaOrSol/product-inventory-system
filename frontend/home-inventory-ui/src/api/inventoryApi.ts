@@ -27,12 +27,19 @@ export async function addInventoryItem(data: {
     });
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 export async function updateInventoryItem(
     id: number,
     updates: Partial<InventoryItem>
 ) {
+<<<<<<< HEAD
     return apiFetch(`${API_BASE}/${id}`, {
+=======
+    return apiFetch(`${API_BASE}/${productId}`, {
+>>>>>>> main
         method: "PUT",
         headers: {
             "X-Installation-Id": installationService.getId() || "",
@@ -41,8 +48,13 @@ export async function updateInventoryItem(
     });
 }
 
+<<<<<<< HEAD
 export async function deleteInventoryItem(id: number) {
     return apiFetch(`${API_BASE}/${id}`, {
+=======
+export async function deleteInventoryItem(productId: number) {
+    return apiFetch(`${API_BASE}/${productId}`, {
+>>>>>>> main
         method: "DELETE",
         headers: {
             "X-Installation-Id": installationService.getId() || "",

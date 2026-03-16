@@ -35,6 +35,11 @@ const Index = () => {
     const [showScanner, setShowScanner] = useState(false);
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState<Product[]>([]);
+<<<<<<< HEAD
+=======
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
+    const { logout } = useAuth();
+>>>>>>> main
 
     useEffect(() => {
         const savedId = installationService.getId();
@@ -53,6 +58,21 @@ const Index = () => {
         }
     };
 
+<<<<<<< HEAD
+=======
+    const handleLogout = () => {
+        logout();
+        setInstallationId(null);
+        setItems([]);
+        navigate("/login");
+    };
+
+    const handleItemDeleted = (productId: number) => {
+        setItems((prev) => prev.filter((item) => item.productId !== productId));
+    };
+
+    // Auto-load items when ID is set
+>>>>>>> main
     useEffect(() => {
         if (installationId) {
             loadItems();
@@ -110,7 +130,46 @@ const Index = () => {
             });
     }, [items]);
 
+<<<<<<< HEAD
     if (loading || !installationId) return null;
+=======
+    const expiringCount = items.filter((item) => {
+        if (!item.bestBefore) return false;
+        const daysUntil = Math.ceil(
+            (new Date(item.bestBefore).getTime() - new Date().getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        return daysUntil <= 3 && daysUntil >= 0;
+    }).length;
+
+
+    useEffect(() => {
+        if (!loading && !installationId) {
+            navigate("/onboarding");
+        }
+    }, [loading, installationId, navigate]);
+
+    if (loading) return null;
+    if (!installationId) return null;
+
+    const CATEGORY_ICONS: Record<string, string> = {
+        DAIRY: "🥛",
+        BEVERAGES: "🥤",
+        PANTRY: "🍝",
+        FRUITS: "🍎",
+        CANNED_FOOD: "🥫",
+        CLEANING: "🧼",
+        SNACKS: "🍪",
+        LAUNDRY: "🧺",
+        PERSONAL_CARE: "🧴",
+        VEGETABLES: "🥦",
+        Uncategorized: "📦",
+        All: "✨",
+    };
+
+    const getCategoryIcon = (cat: string) =>
+        CATEGORY_ICONS[cat] || "📦";
+>>>>>>> main
 
     return (
         <div className="min-h-screen gradient-warm">
