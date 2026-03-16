@@ -42,10 +42,8 @@ export const useVoiceInventory = (products: Product[]) => {
             try {
                 await addInventoryItem({
                     installationId: installationService.getId() || "",
-                    productId: parsed.product.id,
-                    productName: parsed.product.name,
-                    quantity: parsed.quantity,
-                    notes: `Voice: "${parsed.rawText}"`
+                    genericProductId: parsed.product.id,
+                    quantity: parsed.quantity
                 });
 
                 toast.success(

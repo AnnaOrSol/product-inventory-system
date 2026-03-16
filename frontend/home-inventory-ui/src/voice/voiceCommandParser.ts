@@ -28,8 +28,7 @@ export const parseVoiceCommand = (
     // product matching (name + aliases)
     const product =
         products.find(p =>
-            [p.name, ...(p.aliases || [])]
-                .some(alias => normalized.includes(alias.toLowerCase()))
+            normalized.includes(p.name.toLowerCase())
         ) || null;
 
     return {
