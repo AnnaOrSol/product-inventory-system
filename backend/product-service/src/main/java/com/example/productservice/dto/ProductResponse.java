@@ -8,20 +8,22 @@ public class ProductResponse {
     private Long id;
     private String name;
     private String brand;
-
     private String barcode;
-    private String category;
     private Instant createdAt;
     private String imageUrl;
+    private Long genericProductId;
+    private String genericProductName;
 
-    public ProductResponse(Long id, String name, String brand, String barcode, String category, Instant createdAt, String imageUrl){
+    public ProductResponse(Long id, String name, String brand, String barcode, Instant createdAt, String imageUrl,
+                           Long genericProductId, String genericProductName){
         this.id= id;
         this.name=name;
         this.brand=brand;
         this.barcode = barcode;
-        this.category=category;
         this.createdAt=createdAt;
         this.imageUrl = imageUrl;
+        this.genericProductId = genericProductId;
+        this.genericProductName = genericProductName;
     }
 
     public Long getId() {
@@ -36,9 +38,6 @@ public class ProductResponse {
         return brand;
     }
 
-    public String getCategory() {
-        return category;
-    }
 
     public Instant getCreatedAt() {
         return createdAt;
@@ -50,6 +49,14 @@ public class ProductResponse {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public Long getGenericProductId() {
+        return genericProductId;
+    }
+
+    public String getGenericProductName() {
+        return genericProductName;
     }
 
 }

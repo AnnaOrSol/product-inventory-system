@@ -35,7 +35,7 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
 
         Map<Long, Integer> inventoryMap = currentInventory.stream()
                 .collect(Collectors.groupingBy(
-                        InventoryItem::getProductId,
+                        InventoryItem::getGenericProductId,
                         Collectors.summingInt(InventoryItem::getQuantity)
                 ));
 
