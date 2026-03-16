@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { fetchProducts } from "@/api/productApi";
+import { getGenericProducts } from "@/services/productService";
 import { RequirementSelectionGrid, type GridRef } from "./RequirementSelectionGrid";
 import { Plus, X, Loader2, Save } from "lucide-react";
-import type { Product } from "@/types/product";
+import type { GenericProduct } from "@/types/product";
 import { cn } from "@/lib/utils";
 
 export function AddRequirementDialog({ onSave }: { onSave: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+    const [availableProducts, setAvailableProducts] = useState<GenericProduct[]>([]);
     const [loading, setLoading] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
     const gridRef = useRef<GridRef>(null);
@@ -15,9 +15,9 @@ export function AddRequirementDialog({ onSave }: { onSave: () => void }) {
     useEffect(() => {
         if (isOpen) {
             setLoading(true);
-            fetchProducts()
+            getGenericProducts()
                 .then(setAvailableProducts)
-                .catch(err => console.error("Error loading products", err))
+                .catch((err) => console.error("Error loading generic products", err))
                 .finally(() => setLoading(false));
         }
     }, [isOpen]);
@@ -47,11 +47,12 @@ export function AddRequirementDialog({ onSave }: { onSave: () => void }) {
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
             <div className="bg-white p-6 rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-2xl max-h-[95vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-
                 <div className="flex justify-between items-center mb-6 px-1">
                     <div>
                         <h3 className="text-2xl font-black text-slate-800 tracking-tight">Catalog</h3>
-                        <p className="text-xs text-slate-400 font-medium">Tap items to add them to your list</p>
+                        <p className="text-xs text-slate-400 font-medium">
+                            Tap generic products to add them to your requirements
+                        </p>
                     </div>
                     <button
                         onClick={() => setIsOpen(false)}

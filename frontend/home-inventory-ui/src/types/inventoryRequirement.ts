@@ -1,6 +1,6 @@
 export interface InventoryRequirement {
     id: number;
-    productId: number;
-    productName: string;
+    genericProductId: number;
+    genericProductName: string;
     minimumQuantity: number;
 }

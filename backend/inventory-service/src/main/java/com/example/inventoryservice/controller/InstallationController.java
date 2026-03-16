@@ -1,10 +1,8 @@
 package com.example.inventoryservice.controller;
 
-import com.example.inventoryservice.dto.CreateInstallationRequest;
-import com.example.inventoryservice.dto.CreateInstallationResponse;
-import com.example.inventoryservice.dto.GeneratePairCodeRequest;
-import com.example.inventoryservice.dto.JoinInstallationRequest;
+import com.example.inventoryservice.dto.*;
 import com.example.inventoryservice.service.InstallationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +33,25 @@ public class InstallationController {
     @PostMapping("/paircode")
     public ResponseEntity<CreateInstallationResponse> generateNewPairingCodeToJoin(@RequestBody GeneratePairCodeRequest request) {
         CreateInstallationResponse result = installationService.generateNewPairingCodeToJoin(request.installationId());
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{installationId}")
+    public ResponseEntity<InstallationDetailsResponse> getInstallation(
+            @PathVariable UUID installationId
+    ) {
+        InstallationDetailsResponse result = installationService.getInstallation(installationId);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{installationId}")
+    public ResponseEntity<InstallationDetailsResponse> updateInstallation(
+            @PathVariable UUID installationId,
+            @Valid @RequestBody UpdateInstallationRequest request
+    ) {
+        InstallationDetailsResponse result =
+                installationService.updateInstallationName(installationId, request.name());
+
         return ResponseEntity.ok(result);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.inventoryservice.service.impl;
 
 import com.example.inventoryservice.dto.CreateInstallationResponse;
+import com.example.inventoryservice.dto.InstallationDetailsResponse;
 import com.example.inventoryservice.model.Installation;
 import com.example.inventoryservice.model.PairingCode;
 import com.example.inventoryservice.repository.InstallationRepository;
@@ -107,5 +108,28 @@ public class InstallationServiceImpl implements InstallationService {
         return new PairingCode(code, installationId, expiresAt);
     }
 
+    @Override
+    public InstallationDetailsResponse getInstallation(UUID installationId) {
+        Installation installation = installationRepository.findById(installationId)
+                .orElseThrow(() -> new RuntimeException("Installation not found"));
 
+        return new InstallationDetailsResponse(
+                installation.getId(),
+                installation.getName()
+        );
+    }
+
+    @Override
+    public InstallationDetailsResponse updateInstallationName(UUID installationId, String name) {
+        Installation installation = installationRepository.findById(installationId)
+                .orElseThrow(() -> new RuntimeException("Installation not found"));
+
+        installation.setName(name);
+        Installation savedInstallation = installationRepository.save(installation);
+
+        return new InstallationDetailsResponse(
+                savedInstallation.getId(),
+                savedInstallation.getName()
+        );
+    }
 }
