@@ -6,10 +6,7 @@ import LoginPage from "@/pages/LoginPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import { useAuth } from "@/context/AuthContext";
 import RegisterPage from "@/pages/RegisterPage";
-<<<<<<< HEAD
 import FullInventory from "./pages/FullInventory";
-=======
->>>>>>> main
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -63,7 +60,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-<<<<<<< HEAD
         <Route
           path="/inventory"
           element={
@@ -72,8 +68,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-=======
->>>>>>> main
       </Routes>
     </BrowserRouter>
   );
