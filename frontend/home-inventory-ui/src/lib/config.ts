@@ -8,4 +8,5 @@ export const API_PATHS = {
     INVENTORY_API: `${CONFIG.API_BASE_URL}/inventory`,
     INSTALLATIONS_API: `${CONFIG.API_BASE_URL}/installations`,
     INSTALLATION_MEMBERS_API: `${CONFIG.API_BASE_URL}/installation-members`,
+    NOTES_API: `${CONFIG.API_BASE_URL}/notes`,
 };

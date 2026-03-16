@@ -32,7 +32,7 @@ import { toast } from "sonner";
 interface InventoryCardProps {
     item: InventoryItem;
     onUpdate: () => void;
-    onDeleted?: (productId: number) => void;
+    onDeleted?: (inventoryItemId: number) => void;
 }
 
 export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps) {
@@ -40,10 +40,10 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     const [tapKey, setTapKey] = useState<"plus" | "minus" | null>(null);
 
     const [editData, setEditData] = useState({
-        productId: item.productId,
-        productName: item.productName,
+        productId: item.genericProductId,
+        productName: item.genericProductName,
         quantity: item.quantity,
-        bestByDate: item.bestBefore,
+        bestBefore: item.bestBefore,
     });
 
     /* ---------- Expiry logic ---------- */
@@ -85,12 +85,11 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
     ) => {
         if (newQuantity < 0) return;
 
-        // Micro-interaction trigger
         setTapKey(key);
         setTimeout(() => setTapKey(null), 200);
 
         try {
-            await updateInventoryItem(item.productId, {
+            await updateInventoryItem(item.id, {
                 ...editData,
                 quantity: newQuantity,
             });
@@ -102,7 +101,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
 
     const handleSave = async () => {
         try {
-            await updateInventoryItem(item.productId, editData);
+            await updateInventoryItem(item.id, editData);
             setIsEditing(false);
             onUpdate();
             toast.success("Updated successfully");
@@ -113,19 +112,21 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
 
     const handleDelete = async () => {
         try {
-            onDeleted?.(item.productId);
-            await deleteInventoryItem(item.productId);
+            await deleteInventoryItem(item.id);
+            onDeleted?.(item.id);
+            onUpdate();
         } catch (e) {
             console.error(e);
+            toast.error("Failed to delete item");
         }
     };
 
     const handleCancel = () => {
         setEditData({
-            productId: item.productId,
-            productName: item.productName,
+            productId: item.genericProductId,
+            productName: item.genericProductName,
             quantity: item.quantity,
-            bestByDate: item.bestBefore,
+            bestBefore: item.bestBefore,
         });
         setIsEditing(false);
     };
@@ -163,11 +164,11 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                     <Input
                         type="date"
                         className="h-11 rounded-xl"
-                        value={editData.bestByDate ?? ""}
+                        value={editData.bestBefore ?? ""}
                         onChange={(e) =>
                             setEditData({
                                 ...editData,
-                                bestByDate: e.target.value || null,
+                                bestBefore: e.target.value || null,
                             })
                         }
                     />
@@ -200,7 +201,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <Package className="h-4 w-4 text-primary" />
-                            <h3 className="font-semibold truncate">{item.productName}</h3>
+                            <h3 className="font-semibold truncate">{item.genericProductName}</h3>
                         </div>
 
                         {/* Quantity controls */}

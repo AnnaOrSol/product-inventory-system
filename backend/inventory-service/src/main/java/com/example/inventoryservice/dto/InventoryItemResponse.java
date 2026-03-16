@@ -7,8 +7,8 @@ import java.util.UUID;
 public class InventoryItemResponse {
     private final Long id;
     private final UUID installationId;
-    private final Long productId;
-    private final String productName;
+    private final Long genericProductId;
+    private final String genericProductName;
     private final Integer quantity;
     private final String location;
     private final String notes;
@@ -16,11 +16,11 @@ public class InventoryItemResponse {
     private final Instant updatedAt;
     private final LocalDate bestBefore;
 
-    public InventoryItemResponse(Long id, UUID installationId, Long productId, String productName, Integer quantity, String location, String notes, Instant createdAt, Instant updatedAt, LocalDate bestBefore) {
+    public InventoryItemResponse(Long id, UUID installationId, Long genericProductId, String genericProductName, Integer quantity, String location, String notes, Instant createdAt, Instant updatedAt, LocalDate bestBefore) {
         this.id = id;
         this.installationId = installationId;
-        this.productId = productId;
-        this.productName = productName;
+        this.genericProductId = genericProductId;
+        this.genericProductName = genericProductName;
         this.quantity = quantity;
         this.location = location;
         this.notes = notes;
@@ -33,16 +33,16 @@ public class InventoryItemResponse {
         return id;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getGenericProductName() {
+        return genericProductName;
     }
 
     public UUID getInstallationId() {
         return installationId;
     }
 
-    public Long getProductId() {
-        return productId;
+    public Long getGenericProductId() {
+        return genericProductId;
     }
 
     public Integer getQuantity() {

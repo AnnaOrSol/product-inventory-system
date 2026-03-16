@@ -1,4 +1,4 @@
-import { Product } from "@/types/product";
+import { Product, CreateProductRequest } from "@/types/product";
 import { API_PATHS } from "@/lib/config";
 import { apiFetch } from "@/api/apiClient";
 
@@ -8,14 +8,7 @@ export async function fetchProducts(): Promise<Product[]> {
     return apiFetch(`${PRODUCT_API}/items`);
 }
 
-export async function createProduct(productData: {
-    name: string;
-    brand: string;
-    barcode: string;
-    category: string;
-    createdAt: string;
-    imageUrl: string;
-}) {
+export async function createProduct(productData: CreateProductRequest): Promise<Product> {
     return apiFetch(`${PRODUCT_API}`, {
         method: "POST",
         body: JSON.stringify(productData),

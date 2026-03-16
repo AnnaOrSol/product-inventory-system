@@ -8,46 +8,48 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { useEffect, useMemo, useState } from "react";
-import { fetchProducts } from "@/api/productApi";
-import type { Product } from "@/types/product";
+import { getGenericProducts } from "@/services/productService";
+import type { GenericProduct } from "@/types/product";
 
 interface ProductSelectProps {
     value: number | null;
-    onChange: (product: Product) => void;
+    onChange: (product: GenericProduct) => void;
 }
 
 export function ProductSelect({ value, onChange }: ProductSelectProps) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<GenericProduct[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         async function loadProducts() {
             try {
                 setLoading(true);
-                const data = await fetchProducts();
+                const data = await getGenericProducts();
                 setProducts(data);
             } catch (err) {
-                console.error("Failed to load products", err);
+                console.error("Failed to load generic products", err);
             } finally {
                 setLoading(false);
             }
         }
+
         loadProducts();
     }, []);
 
     const filteredProducts = useMemo(() => {
         const lower = search.toLowerCase();
+
         return products.filter((p) =>
             p.name.toLowerCase().includes(lower) ||
-            (p.brand && p.brand.toLowerCase().includes(lower))
+            p.categoryDisplayName.toLowerCase().includes(lower)
         );
     }, [products, search]);
 
     const selectedProduct = products.find((p) => p.id === value);
 
-    const handleSelect = (product: Product) => {
+    const handleSelect = (product: GenericProduct) => {
         onChange(product);
         setOpen(false);
         setSearch("");
@@ -76,7 +78,7 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                 <div className="flex items-center border-b p-3 bg-slate-50/50 sticky top-0 z-10">
                     <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                     <Input
-                        placeholder="Search product name or brand..."
+                        placeholder="Search generic product..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="h-9 w-full border-none bg-transparent focus-visible:ring-0 text-base"
@@ -86,7 +88,9 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
 
                 <div className="max-h-[250px] overflow-y-auto p-1 scrollbar-thin overscroll-contain">
                     {loading ? (
-                        <div className="py-6 text-center text-sm text-slate-500">Loading catalogue...</div>
+                        <div className="py-6 text-center text-sm text-slate-500">
+                            Loading catalogue...
+                        </div>
                     ) : filteredProducts.length === 0 ? (
                         <div className="py-10 text-center text-sm text-slate-400 font-medium">
                             No product found for "{search}"
@@ -110,11 +114,9 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
                                 />
                                 <div className="flex flex-col text-left overflow-hidden">
                                     <span className="truncate">{product.name}</span>
-                                    {product.brand && (
-                                        <span className="truncate text-[10px] text-slate-400 uppercase tracking-wider">
-                                            {product.brand}
-                                        </span>
-                                    )}
+                                    <span className="truncate text-[10px] text-slate-400 uppercase tracking-wider">
+                                        {product.categoryDisplayName}
+                                    </span>
                                 </div>
                             </button>
                         ))

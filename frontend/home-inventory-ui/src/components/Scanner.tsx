@@ -260,10 +260,9 @@ export const Scanner: React.FC<ScannerProps> = ({ onItemAdded }) => {
                 matchedItems.map(item =>
                     addInventoryItem({
                         installationId,
-                        productId: item.product.id,
-                        productName: item.product.name,
+                        genericProductId: item.product.genericProductId || item.product.id,
                         quantity: item.count,
-                        notes: "AI Scan"
+                        bestBefore: undefined,
                     })
                 )
             );
@@ -282,7 +281,7 @@ export const Scanner: React.FC<ScannerProps> = ({ onItemAdded }) => {
             });
 
             onItemAdded?.();
-            toast.success("Inventory updated");
+            toast.success("Inventory updated successfully");
         } catch {
             toast.error("Sync failed");
         } finally {
@@ -348,8 +347,8 @@ export const Scanner: React.FC<ScannerProps> = ({ onItemAdded }) => {
                     onClick={handleSync}
                     disabled={matchedItems.length === 0 || isSaving || isModelLoading}
                     className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${matchedItems.length > 0 && !isSaving
-                            ? "bg-green-600 hover:bg-green-500"
-                            : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                        ? "bg-green-600 hover:bg-green-500"
+                        : "bg-slate-700 text-slate-500 cursor-not-allowed"
                         }`}
                 >
                     {isSaving ? "Updating…" : matchedItems.length ? "Confirm Scan" : "Scanning…"}

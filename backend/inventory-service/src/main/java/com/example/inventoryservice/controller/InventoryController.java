@@ -38,29 +38,29 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<InventoryItemResponse> addItem(@Valid @RequestBody CreateInventoryItemRequest request) {
-        log.info("Adding new inventory item: {}", request.getProductName());
+        log.info("Adding new inventory item: {}", request.getGenericProductName());
         InventoryItemResponse response = inventoryItemService.addNewInventoryItem(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/{id}")
     public ResponseEntity<InventoryItemResponse> update(
             @RequestHeader("X-Installation-Id") UUID installationId,
-            @PathVariable Long productId,
+            @PathVariable Long id,
             @RequestBody UpdateInventoryItemRequest request
     ) {
-        log.info("Updating product {} for installation {}", productId, installationId);
-        InventoryItemResponse response = inventoryItemService.updateItem(installationId, productId, request);
+        log.info("Updating product {} for installation {}", id, installationId);
+        InventoryItemResponse response = inventoryItemService.updateItem(installationId, id, request);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @RequestHeader("X-Installation-Id") UUID installationId,
-            @PathVariable Long productId
+            @PathVariable Long id
     ) {
-        log.info("Deleting product {} from installation {}", productId, installationId);
-        inventoryItemService.deleteItem(installationId, productId);
+        log.info("Deleting product {} from installation {}", id, installationId);
+        inventoryItemService.deleteItem(installationId, id);
         return ResponseEntity.noContent().build();
     }
 }

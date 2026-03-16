@@ -9,20 +9,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface InventoryRepository extends JpaRepository<InventoryItem, Long> {
-    Optional<InventoryItem> findByInstallationIdAndProductId(
+    Optional<InventoryItem> findByInstallationIdAndId(
             UUID installationId,
-            Long productId
+            Long genericProductId
     );
 
-    Optional<InventoryItem> findByInstallationIdAndProductIdAndBestBeforeEquals(
-            UUID installationId,
-            Long productId,
-            LocalDate bestBefore
-    );
 
     List<InventoryItem> findAllByInstallationId(UUID installationId);
 
-    List<InventoryItem> findAllByInstallationIdAndBestBeforeIsNotNullOrderByBestBeforeAsc(
-            UUID installationId
-    );
 }

@@ -13,5 +13,5 @@ public interface InventoryItemService {
     public List<InventoryItemResponse> getItemsForInstallation (UUID installationId);
     public InventoryItemResponse addNewInventoryItem(CreateInventoryItemRequest request);
     public InventoryItemResponse updateItem(UUID installationId, Long productId, UpdateInventoryItemRequest request);
-    public void deleteItem(UUID installationId, Long productId);
+    public void deleteItem(UUID installationId, Long id);
 }

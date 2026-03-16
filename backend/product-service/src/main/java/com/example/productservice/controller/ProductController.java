@@ -29,5 +29,5 @@ public class ProductController {
     public ProductResponse getProductByBarcode (@PathVariable String barcode) { return productService.getProductByBarcode(barcode);}
 
     @PostMapping
-    public ProductResponse addProductWithBarcode (@Valid @RequestBody CreateNewProductRequest request) { return productService.addProductByBarcode(request);}
+    public ProductResponse addProductWithBarcode (@Valid @RequestBody CreateNewProductRequest request) { return productService.createProduct(request);}
 }
