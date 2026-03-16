@@ -35,19 +35,19 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
 
         Map<Long, Integer> inventoryMap = currentInventory.stream()
                 .collect(Collectors.groupingBy(
-                        InventoryItem::getProductId,
+                        InventoryItem::getGenericProductId,
                         Collectors.summingInt(InventoryItem::getQuantity)
                 ));
 
         return requirements.stream()
                 .flatMap(req -> {
-                    int currentQty = inventoryMap.getOrDefault(req.getProductId(), 0);
+                    int currentQty = inventoryMap.getOrDefault(req.getGenericProductId(), 0);
                     int missing = req.getMinimumQuantity() - currentQty;
 
                     if (missing > 0) {
                         return Stream.of(new ShoppngListItemResponse(
-                                req.getProductId(),
-                                req.getProductName(),
+                                req.getGenericProductId(),
+                                req.getGenericProductName(),
                                 currentQty,
                                 req.getMinimumQuantity(),
                                 missing
@@ -72,7 +72,7 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
     public InventoryRequirementsResponse addInventoryRequiredItem(UUID installationId, CreateInventoryRequiredItemRequest request) {
         InventoryRequirements entity = mapToEntity(installationId, request);
         InventoryRequirements saved = inventoryRequirementsRepository.save(entity);
-        log.info("Added requirement for product: {}", request.getProductName());
+        log.info("Added requirement for generic product: {}", request.getGenericProductName());
         return mapToResponse(saved);
     }
 
@@ -90,8 +90,9 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
 
     @Override
     @Transactional
-    public InventoryRequirementsResponse updateItem(UUID installationId, Long productId, UpdateInventoryRequirementsRequest request) {
-        InventoryRequirements item = inventoryRequirementsRepository.findByInstallationIdAndProductId(installationId, productId)
+    public InventoryRequirementsResponse updateItem(UUID installationId, Long genericProductId, UpdateInventoryRequirementsRequest request) {
+        InventoryRequirements item = inventoryRequirementsRepository
+                .findByInstallationIdAndGenericProductId(installationId, genericProductId)
                 .orElseThrow(() -> new RuntimeException("Requirement not found"));
 
         if (request.getMinimumQuantity() != null) {
@@ -103,18 +104,22 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
 
     @Override
     @Transactional
-    public void deleteItem(UUID installationId, Long productId) {
-        inventoryRequirementsRepository.deleteByInstallationIdAndProductId(installationId, productId);
-        log.info("Deleted requirement for installation: {}, product: {}", installationId, productId);
+    public void deleteItem(UUID installationId, Long genericProductId) {
+        inventoryRequirementsRepository.deleteByInstallationIdAndGenericProductId(installationId, genericProductId);
+        log.info("Deleted requirement for installation: {}, genericProductId: {}", installationId, genericProductId);
     }
 
-    // --- Mappers ---
+    @Transactional
+    public void deleteItems(UUID installationId, List<Long> genericProductIds) {
+        inventoryRequirementsRepository.deleteAllByInstallationIdAndGenericProductIdIn(installationId, genericProductIds);
+        log.info("Deleted {} requirement items for installation: {}", genericProductIds.size(), installationId);
+    }
 
     private InventoryRequirements mapToEntity(UUID installationId, CreateInventoryRequiredItemRequest request) {
         InventoryRequirements item = new InventoryRequirements();
         item.setInstallationId(installationId);
-        item.setProductId(request.getProductId());
-        item.setProductName(request.getProductName());
+        item.setGenericProductId(request.getGenericProductId());
+        item.setGenericProductName(request.getGenericProductName());
         item.setMinimumQuantity(request.getMinimumQuantity());
         return item;
     }
@@ -123,8 +128,8 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
         return new InventoryRequirementsResponse(
                 entity.getId(),
                 entity.getInstallationId(),
-                entity.getProductId(),
-                entity.getProductName(),
+                entity.getGenericProductId(),
+                entity.getGenericProductName(),
                 entity.getMinimumQuantity(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()

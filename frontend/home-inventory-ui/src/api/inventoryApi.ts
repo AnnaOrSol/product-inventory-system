@@ -15,12 +15,11 @@ export async function fetchInventory(): Promise<InventoryItem[]> {
 
 export async function addInventoryItem(data: {
     installationId: string;
-    productId: number;
-    productName: string;
+    genericProductId: number;
+    specificProductId?: number;
     quantity: number;
     bestBefore?: string;
     location?: string;
-    notes?: string;
 }) {
     return apiFetch(`${API_BASE}`, {
         method: "POST",
@@ -29,10 +28,10 @@ export async function addInventoryItem(data: {
 }
 
 export async function updateInventoryItem(
-    productId: number,
+    id: number,
     updates: Partial<InventoryItem>
 ) {
-    return apiFetch(`${API_BASE}/${productId}`, {
+    return apiFetch(`${API_BASE}/${id}`, {
         method: "PUT",
         headers: {
             "X-Installation-Id": installationService.getId() || "",
@@ -41,8 +40,8 @@ export async function updateInventoryItem(
     });
 }
 
-export async function deleteInventoryItem(productId: number) {
-    return apiFetch(`${API_BASE}/${productId}`, {
+export async function deleteInventoryItem(id: number) {
+    return apiFetch(`${API_BASE}/${id}`, {
         method: "DELETE",
         headers: {
             "X-Installation-Id": installationService.getId() || "",

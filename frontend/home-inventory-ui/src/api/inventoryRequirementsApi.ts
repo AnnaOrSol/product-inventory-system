@@ -29,17 +29,25 @@ export async function addInventoryRequirements(items: Partial<InventoryRequireme
     });
 }
 
-export async function updateInventoryRequirement(productId: number, minimumQuantity: number) {
-    return apiFetch(`${API_BASE}/requirements/${productId}`, {
+export async function updateInventoryRequirement(genericProductId: number, minimumQuantity: number) {
+    return apiFetch(`${API_BASE}/requirements/${genericProductId}`, {
         method: "PUT",
         headers: getHeaders(),
         body: JSON.stringify({ minimumQuantity }),
     });
 }
 
-export async function deleteInventoryRequirement(productId: number) {
-    return apiFetch(`${API_BASE}/requirements/${productId}`, {
+export async function deleteInventoryRequirement(genericProductId: number) {
+    return apiFetch(`${API_BASE}/requirements/${genericProductId}`, {
         method: "DELETE",
         headers: getHeaders(),
+    });
+}
+
+export async function deleteInventoryRequirementsBulk(genericProductIds: number[]) {
+    return apiFetch(`${API_BASE}/requirements/batch`, {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify(genericProductIds),
     });
 }

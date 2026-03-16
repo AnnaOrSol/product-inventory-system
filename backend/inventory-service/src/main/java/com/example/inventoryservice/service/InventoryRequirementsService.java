@@ -16,4 +16,5 @@ public interface InventoryRequirementsService {
     public List<InventoryRequirementsResponse> addInventoryRequiredItems(UUID installationId, List<CreateInventoryRequiredItemRequest> requests);
     public InventoryRequirementsResponse updateItem(UUID installationId, Long productId, UpdateInventoryRequirementsRequest request);
     public void deleteItem(UUID installationId, Long productId);
+    void deleteItems(UUID installationId, List<Long> genericProductIds);
 }

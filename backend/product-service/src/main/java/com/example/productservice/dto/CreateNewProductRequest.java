@@ -1,45 +1,60 @@
 package com.example.productservice.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class CreateNewProductRequest {
-    @NotNull
+
+    @NotBlank(message = "Product name is required")
     private String name;
-    @NotNull
+
     private String barcode;
-    @NotNull
+
     private String brand;
-    @NotNull
-    private String category;
+
     private String imageUrl;
 
+    private Long genericProductId;
 
-    public CreateNewProductRequest() {}
-
-    public void setName(String name) { this.name = name; }
-    public void setBarcode(String barcode) { this.barcode = barcode; }
-    public void setBrand(String brand) { this.brand = brand; }
-    public void setCategory(String category) { this.category = category; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public CreateNewProductRequest() {
+    }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getBarcode() {
         return barcode;
     }
 
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
     public String getBrand() {
         return brand;
     }
 
-    public String getCategory() {
-        return category;
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public String getImageUrl() {
         return imageUrl;
     }
 
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Long getGenericProductId() {
+        return genericProductId;
+    }
+
+    public void setGenericProductId(Long genericProductId) {
+        this.genericProductId = genericProductId;
+    }
 }

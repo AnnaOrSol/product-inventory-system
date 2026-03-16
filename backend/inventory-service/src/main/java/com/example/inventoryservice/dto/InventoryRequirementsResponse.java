@@ -6,17 +6,25 @@ import java.util.UUID;
 public class InventoryRequirementsResponse {
     private Long id;
     private UUID installationId;
-    private Long productId;
-    private String productName;
+    private Long genericProductId;
+    private String genericProductName;
     private Integer minimumQuantity;
     private Instant createdAt;
     private Instant updatedAt;
 
-    public InventoryRequirementsResponse(Long id, UUID installationId, Long productId, String productName, Integer minimumQuantity, Instant createdAt, Instant updatedAt) {
+    public InventoryRequirementsResponse(
+            Long id,
+            UUID installationId,
+            Long genericProductId,
+            String genericProductName,
+            Integer minimumQuantity,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
         this.id = id;
         this.installationId = installationId;
-        this.productId = productId;
-        this.productName = productName;
+        this.genericProductId = genericProductId;
+        this.genericProductName = genericProductName;
         this.minimumQuantity = minimumQuantity;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -26,16 +34,16 @@ public class InventoryRequirementsResponse {
         return id;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
     public UUID getInstallationId() {
         return installationId;
     }
 
-    public Long getProductId() {
-        return productId;
+    public Long getGenericProductId() {
+        return genericProductId;
+    }
+
+    public String getGenericProductName() {
+        return genericProductName;
     }
 
     public Integer getMinimumQuantity() {

@@ -44,23 +44,22 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         InventoryItem item = new InventoryItem();
 
         item.setInstallationId(request.getInstallationId());
-        item.setProductId(request.getProductId());
-        item.setProductName(request.getProductName());
+        item.setGenericProductId(request.getGenericProductId());
+        item.setGenericProductName(request.getGenericProductName());
         item.setQuantity(request.getQuantity());
         item.setLocation(request.getLocation());
         item.setNotes(request.getNotes());
         item.setBestBefore(request.getBestBefore());
 
         InventoryItem saved = inventoryRepository.save(item);
-        log.info("New item added to inventory: id={}, product={}", saved.getId(), saved.getProductName());
-
+        log.info("New item added to inventory: id={}, genericProduct={}", saved.getId(), saved.getGenericProductName());
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional
-    public InventoryItemResponse updateItem(UUID installationId, Long productId, UpdateInventoryItemRequest request) {
-        InventoryItem item = inventoryRepository.findByInstallationIdAndProductId(installationId, productId)
+    public InventoryItemResponse updateItem(UUID installationId, Long id, UpdateInventoryItemRequest request) {
+        InventoryItem item = inventoryRepository.findByInstallationIdAndId(installationId, id)
                 .orElseThrow(() -> new RuntimeException("Item not found for installation and product"));
 
         if (request.getQuantity() != null) item.setQuantity(request.getQuantity());
@@ -68,19 +67,19 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         if (request.getNotes() != null) item.setNotes(request.getNotes());
 
         InventoryItem saved = inventoryRepository.save(item);
-        log.info("Item updated: installation={}, product={}", installationId, productId);
+        log.info("Item updated: installation={}, product={}", installationId, id);
 
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional
-    public void deleteItem(UUID installationId, Long productId) {
-        InventoryItem item = inventoryRepository.findByInstallationIdAndProductId(installationId, productId)
+    public void deleteItem(UUID installationId, Long id) {
+        InventoryItem item = inventoryRepository.findByInstallationIdAndId(installationId, id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         inventoryRepository.delete(item);
-        log.info("Item deleted: installation={}, product={}", installationId, productId);
+        log.info("Item deleted: installation={}, product={}", installationId, id);
     }
 
 
@@ -88,8 +87,8 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         return new InventoryItemResponse(
                 item.getId(),
                 item.getInstallationId(),
-                item.getProductId(),
-                item.getProductName(),
+                item.getGenericProductId(),
+                item.getGenericProductName(),
                 item.getQuantity(),
                 item.getLocation(),
                 item.getNotes(),

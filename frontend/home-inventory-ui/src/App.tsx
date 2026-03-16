@@ -6,6 +6,7 @@ import LoginPage from "@/pages/LoginPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import { useAuth } from "@/context/AuthContext";
 import RegisterPage from "@/pages/RegisterPage";
+import FullInventory from "./pages/FullInventory";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -56,6 +57,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute>
+              <FullInventory />
             </ProtectedRoute>
           }
         />

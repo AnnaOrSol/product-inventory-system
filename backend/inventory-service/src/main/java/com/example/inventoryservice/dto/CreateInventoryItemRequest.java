@@ -1,21 +1,27 @@
 package com.example.inventoryservice.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class CreateInventoryItemRequest {
+
     @NotNull
     private UUID installationId;
+
     @NotNull
-    private Long productId;
-    @NotNull
-    private String productName;
+    private Long genericProductId;
+
+    @NotBlank
+    private String genericProductName;
+
     @NotNull
     @Min(1)
     private Integer quantity;
+
     private String location;
     private String notes;
     private LocalDate bestBefore;
@@ -24,12 +30,12 @@ public class CreateInventoryItemRequest {
         return installationId;
     }
 
-    public Long getProductId() {
-        return productId;
+    public Long getGenericProductId() {
+        return genericProductId;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getGenericProductName() {
+        return genericProductName;
     }
 
     public Integer getQuantity() {
