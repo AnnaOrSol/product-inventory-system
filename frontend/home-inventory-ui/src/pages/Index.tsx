@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryCard } from "@/components/InventoryCard";
 import { AddItemForm } from "@/components/AddItemForm";
-import { LoginScreen } from "@/components/LoginScreen";
+import { useAuth } from "@/context/AuthContext";
 import { Scanner } from "@/components/Scanner";
 import { fetchInventory } from "@/api/inventoryApi";
 import { installationService } from "@/services/installationService";
@@ -36,6 +36,7 @@ const Index = () => {
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
+    const { logout } = useAuth();
 
     // Initial load: check for saved session
     useEffect(() => {
@@ -56,9 +57,10 @@ const Index = () => {
     };
 
     const handleLogout = () => {
-        installationService.clearId();
+        logout();
         setInstallationId(null);
         setItems([]);
+        navigate("/login");
     };
 
     const handleItemDeleted = (productId: number) => {
@@ -198,11 +200,15 @@ const Index = () => {
         return daysUntil <= 3 && daysUntil >= 0;
     }).length;
 
-    if (loading) return null;
 
-    if (!installationId) {
-        return <LoginScreen onLoginSuccess={(id) => setInstallationId(id)} />;
-    }
+    useEffect(() => {
+        if (!loading && !installationId) {
+            navigate("/onboarding");
+        }
+    }, [loading, installationId, navigate]);
+
+    if (loading) return null;
+    if (!installationId) return null;
 
     const CATEGORY_ICONS: Record<string, string> = {
         DAIRY: "🥛",

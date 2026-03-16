@@ -1,16 +1,11 @@
 import { Product } from "@/types/product";
-import { API_PATHS } from "@/lib/config"
+import { API_PATHS } from "@/lib/config";
+import { apiFetch } from "@/api/apiClient";
 
 const PRODUCT_API = API_PATHS.PRODUCT_API;
 
 export async function fetchProducts(): Promise<Product[]> {
-    const res = await fetch(`${PRODUCT_API}/items`);
-
-    if (!res.ok) {
-        throw new Error(`Failed to fetch products: ${res.status}`);
-    }
-
-    return res.json();
+    return apiFetch(`${PRODUCT_API}/items`);
 }
 
 export async function createProduct(productData: {
@@ -21,11 +16,8 @@ export async function createProduct(productData: {
     createdAt: string;
     imageUrl: string;
 }) {
-    const response = await fetch(`${PRODUCT_API}`, {
+    return apiFetch(`${PRODUCT_API}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),
     });
-    if (!response.ok) throw new Error("Failed to create product");
-    return response.json();
 }

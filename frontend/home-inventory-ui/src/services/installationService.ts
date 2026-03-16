@@ -1,37 +1,15 @@
-// src/services/installationService.ts
-import { API_PATHS } from "@/lib/config"
-
-const API_URL = API_PATHS.INSTALLATIONS_API;
-
-export interface CreateInstallationResponse {
-    installationId: string;
-    pairingCode: string;
-    expiresAt: string;
-}
+const INSTALLATION_ID_KEY = "currentInstallationId";
 
 export const installationService = {
-    createHome: async (): Promise<CreateInstallationResponse> => {
-        const response = await fetch(API_URL, { method: 'POST' });
-        if (!response.ok) throw new Error('Failed to create home');
-        return response.json();
+    getId(): string | null {
+        return localStorage.getItem(INSTALLATION_ID_KEY);
     },
 
-    sendToEmail: async (email: string, installationId: string) => {
-        console.log(`Sending ID ${installationId} to ${email}`);
-        return new Promise((resolve) => setTimeout(resolve, 1000));
+    saveId(id: string) {
+        localStorage.setItem(INSTALLATION_ID_KEY, id);
     },
 
-    joinHome: async (code: string): Promise<{ installationId: string }> => {
-        const response = await fetch(`${API_URL}/join`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        });
-        if (!response.ok) throw new Error('Invalid or expired code');
-        return response.json();
+    clearId() {
+        localStorage.removeItem(INSTALLATION_ID_KEY);
     },
-
-    saveId: (id: string) => localStorage.setItem('installation_id', id),
-    getId: () => localStorage.getItem('installation_id'),
-    clearId: () => localStorage.removeItem('installation_id')
 };
