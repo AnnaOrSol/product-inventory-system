@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     differenceInDays,
     isPast,
@@ -10,7 +10,7 @@ import {
     Trash2,
     Edit2,
     Calendar,
-    Package,
+    Package2,
     AlertTriangle,
     Check,
     X,
@@ -46,8 +46,6 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
         bestBefore: item.bestBefore,
     });
 
-    /* ---------- Expiry logic ---------- */
-
     const bestByDate = item.bestBefore ? parseISO(item.bestBefore) : null;
     const isValidBestByDate = bestByDate !== null && isValid(bestByDate);
     const daysUntilExpiry = isValidBestByDate
@@ -63,21 +61,74 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
         daysUntilExpiry <= 3 &&
         daysUntilExpiry >= 0;
 
-    const getExpiryStatus = () => {
-        if (!isValidBestByDate)
-            return { label: "No expiry date", color: "text-muted-foreground", bg: "bg-muted/10" };
-        if (isExpired)
-            return { label: "Expired", color: "text-destructive", bg: "bg-destructive/10" };
-        if (isToday(bestByDate!))
-            return { label: "Expires today", color: "text-orange-600", bg: "bg-orange-50" };
-        if (isExpiringSoon)
-            return { label: `${daysUntilExpiry} days left`, color: "text-orange-600", bg: "bg-orange-50" };
-        return { label: `${daysUntilExpiry} days left`, color: "text-primary", bg: "bg-primary/10" };
-    };
+    const status = useMemo(() => {
+        if (!isValidBestByDate) {
+            return {
+                label: "No expiry date",
+                pillClass: "bg-muted text-muted-foreground border-border",
+                rowClass: "text-muted-foreground",
+                showAlert: false,
+            };
+        }
 
-    const status = getExpiryStatus();
+        if (isExpired) {
+            return {
+                label: "Expired",
+                pillClass: "bg-destructive/10 text-destructive border-destructive/20",
+                rowClass: "text-destructive",
+                showAlert: true,
+            };
+        }
 
-    /* ---------- Actions ---------- */
+        if (isToday(bestByDate!)) {
+            return {
+                label: "Expires today",
+                pillClass: "bg-orange-50 text-orange-700 border-orange-200",
+                rowClass: "text-orange-700",
+                showAlert: true,
+            };
+        }
+
+        if (isExpiringSoon) {
+            return {
+                label: `${daysUntilExpiry} days left`,
+                pillClass: "bg-orange-50 text-orange-700 border-orange-200",
+                rowClass: "text-orange-700",
+                showAlert: true,
+            };
+        }
+
+        return {
+            label: `${daysUntilExpiry} days left`,
+            pillClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+            rowClass: "text-emerald-700",
+            showAlert: false,
+        };
+    }, [isValidBestByDate, isExpired, isExpiringSoon, daysUntilExpiry, bestByDate]);
+
+    const colorVariant = useMemo(() => {
+        const name = (item.genericProductName ?? "").toLowerCase();
+
+        if (name.includes("milk") || name.includes("yogurt") || name.includes("cheese")) {
+            return "from-sky-100 to-blue-50 text-sky-700";
+        }
+        if (name.includes("apple") || name.includes("tomato") || name.includes("pepper")) {
+            return "from-rose-100 to-orange-50 text-rose-700";
+        }
+        if (name.includes("banana") || name.includes("corn") || name.includes("pasta")) {
+            return "from-amber-100 to-yellow-50 text-amber-700";
+        }
+        if (name.includes("cucumber") || name.includes("lettuce") || name.includes("broccoli")) {
+            return "from-emerald-100 to-green-50 text-emerald-700";
+        }
+
+        return "from-violet-100 to-fuchsia-50 text-violet-700";
+    }, [item.genericProductName]);
+
+    const initials = useMemo(() => {
+        const name = item.genericProductName?.trim() || "Item";
+        return name.slice(0, 2).toUpperCase();
+    }, [item.genericProductName]);
 
     const handleQuickUpdate = async (
         newQuantity: number,
@@ -86,7 +137,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
         if (newQuantity < 0) return;
 
         setTapKey(key);
-        setTimeout(() => setTapKey(null), 200);
+        setTimeout(() => setTapKey(null), 180);
 
         try {
             await updateInventoryItem(item.id, {
@@ -115,6 +166,7 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
             await deleteInventoryItem(item.id);
             onDeleted?.(item.id);
             onUpdate();
+            toast.success("Item deleted");
         } catch (e) {
             console.error(e);
             toast.error("Failed to delete item");
@@ -131,54 +183,73 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
         setIsEditing(false);
     };
 
-    /* ---------- Edit mode ---------- */
-
     if (isEditing) {
         return (
-            <Card className="border-primary/20 shadow-md">
+            <Card className="h-full rounded-3xl border-primary/20 shadow-md">
                 <CardContent className="p-4 space-y-4">
-                    <ProductSelect
-                        value={editData.productId}
-                        onChange={(product) =>
-                            setEditData({
-                                ...editData,
-                                productId: product.id,
-                                productName: product.name,
-                            })
-                        }
-                    />
+                    <div>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">
+                            Product
+                        </p>
+                        <ProductSelect
+                            value={editData.productId}
+                            onChange={(product) =>
+                                setEditData({
+                                    ...editData,
+                                    productId: product.id,
+                                    productName: product.name,
+                                })
+                            }
+                        />
+                    </div>
 
-                    <Input
-                        type="number"
-                        min="1"
-                        className="h-11 rounded-xl"
-                        value={editData.quantity}
-                        onChange={(e) =>
-                            setEditData({
-                                ...editData,
-                                quantity: parseInt(e.target.value, 10) || 1,
-                            })
-                        }
-                    />
+                    <div>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">
+                            Quantity
+                        </p>
+                        <Input
+                            type="number"
+                            min="1"
+                            className="h-11 rounded-2xl"
+                            value={editData.quantity}
+                            onChange={(e) =>
+                                setEditData({
+                                    ...editData,
+                                    quantity: parseInt(e.target.value, 10) || 1,
+                                })
+                            }
+                        />
+                    </div>
 
-                    <Input
-                        type="date"
-                        className="h-11 rounded-xl"
-                        value={editData.bestBefore ?? ""}
-                        onChange={(e) =>
-                            setEditData({
-                                ...editData,
-                                bestBefore: e.target.value || null,
-                            })
-                        }
-                    />
+                    <div>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">
+                            Best before
+                        </p>
+                        <Input
+                            type="date"
+                            className="h-11 rounded-2xl"
+                            value={editData.bestBefore ?? ""}
+                            onChange={(e) =>
+                                setEditData({
+                                    ...editData,
+                                    bestBefore: e.target.value || null,
+                                })
+                            }
+                        />
+                    </div>
 
-                    <div className="flex gap-2">
-                        <Button onClick={handleSave} className="flex-1">
-                            <Check className="h-4 w-4 mr-2" /> Save
+                    <div className="flex gap-2 pt-1">
+                        <Button onClick={handleSave} className="flex-1 rounded-2xl">
+                            <Check className="mr-2 h-4 w-4" />
+                            Save
                         </Button>
-                        <Button variant="outline" onClick={handleCancel} className="flex-1">
-                            <X className="h-4 w-4 mr-2" /> Cancel
+                        <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            className="flex-1 rounded-2xl"
+                        >
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
                         </Button>
                     </div>
                 </CardContent>
@@ -186,98 +257,121 @@ export function InventoryCard({ item, onUpdate, onDeleted }: InventoryCardProps)
         );
     }
 
-    /* ---------- View mode ---------- */
-
     return (
         <Card
             className={cn(
-                "transition-all duration-200",
-                isExpired && "border-destructive/30 bg-destructive/5",
-                isExpiringSoon && !isExpired && "border-warning/30 bg-warning/5"
+                "group h-full overflow-hidden rounded-3xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg",
+                isExpired && "border-destructive/25 bg-destructive/[0.03]",
+                isExpiringSoon && !isExpired && "border-orange-200 bg-orange-50/20"
             )}
         >
-            <CardContent className="p-4">
-                <div className="flex justify-between gap-3">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Package className="h-4 w-4 text-primary" />
-                            <h3 className="font-semibold truncate">{item.genericProductName}</h3>
-                        </div>
-
-                        {/* Quantity controls */}
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground">Qty</span>
-
+            <CardContent className="p-3 sm:p-4">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-3 min-w-0">
                             <div
                                 className={cn(
-                                    "flex items-center gap-1 rounded-lg p-1 border",
-                                    tapKey && "bg-primary/10"
+                                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-bold shadow-sm",
+                                    colorVariant
                                 )}
                             >
-                                <button
-                                    onClick={() =>
-                                        handleQuickUpdate(item.quantity - 1, "minus")
-                                    }
-                                    className={cn(
-                                        "w-8 h-8 flex items-center justify-center rounded-md",
-                                        tapKey === "minus" && "animate-tap text-destructive"
-                                    )}
-                                >
-                                    <Minus className="h-4 w-4" />
-                                </button>
-
-                                <span className="w-8 text-center font-bold">
-                                    {item.quantity}
-                                </span>
-
-                                <button
-                                    onClick={() =>
-                                        handleQuickUpdate(item.quantity + 1, "plus")
-                                    }
-                                    className={cn(
-                                        "w-8 h-8 flex items-center justify-center rounded-md",
-                                        tapKey === "plus" && "animate-tap text-primary"
-                                    )}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </button>
+                                {initials}
                             </div>
-                        </div>
 
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {safeFormatDate(item.bestBefore ?? undefined)}
-                        </div>
-
-                        <div className="mt-2">
-                            <span
-                                className={cn(
-                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                                    status.bg,
-                                    status.color
-                                )}
-                            >
-                                {(isExpired || isExpiringSoon) && (
-                                    <AlertTriangle className="h-3 w-3" />
-                                )}
-                                {status.label}
-                            </span>
+                            <div className="min-w-0">
+                                <h3 className="truncate text-sm sm:text-base font-semibold text-foreground">
+                                    {item.genericProductName}
+                                </h3>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-1">
+                </div>
+
+                <div className="mt-4 rounded-2xl border bg-muted/30 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                                Qty
+                            </p>
+                            <p className="mt-0.5 text-lg font-semibold text-foreground">
+                                {item.quantity}
+                            </p>
+                        </div>
+
+                        <div
+                            className={cn(
+                                "flex shrink-0 items-center gap-1 rounded-2xl border bg-background p-1 shadow-sm transition-colors",
+                                tapKey && "bg-primary/5"
+                            )}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => handleQuickUpdate(item.quantity - 1, "minus")}
+                                className={cn(
+                                    "flex h-8 w-8 items-center justify-center rounded-xl transition",
+                                    tapKey === "minus"
+                                        ? "scale-95 text-destructive"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                            >
+                                <Minus className="h-4 w-4" />
+                            </button>
+
+                            <span className="w-8 text-center text-sm font-bold">
+                                {item.quantity}
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => handleQuickUpdate(item.quantity + 1, "plus")}
+                                className={cn(
+                                    "flex h-8 w-8 items-center justify-center rounded-xl transition",
+                                    tapKey === "plus"
+                                        ? "scale-95 text-primary"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                            >
+                                <Plus className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 rounded-2xl bg-muted/20 px-3 py-2 text-xs sm:text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                        {safeFormatDate(item.bestBefore ?? undefined)}
+                    </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                    <span
+                        className={cn(
+                            "inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] sm:text-xs font-medium shadow-sm",
+                            status.pillClass
+                        )}
+                    >
+                        {status.showAlert && (
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        )}
+                        <span className="truncate">{status.label}</span>
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsEditing(true)}
+                            className="h-8 w-8 rounded-xl text-muted-foreground hover:text-foreground"
                         >
                             <Edit2 className="h-4 w-4" />
                         </Button>
+
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={handleDelete}
-                            className="text-destructive"
+                            className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>

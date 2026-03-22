@@ -147,7 +147,7 @@ const Settings = () => {
     }
 
     return (
-        <div className="container max-w-3xl py-6 space-y-6">
+        <div className="container max-w-3xl py-6 px-3 space-y-6">
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                     <h1 className="text-2xl font-bold">Settings</h1>

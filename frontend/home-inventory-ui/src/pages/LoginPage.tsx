@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login as loginRequest } from "@/api/authApi";
 import { useAuth } from "@/context/AuthContext";
@@ -8,12 +8,18 @@ import { Link } from "react-router-dom";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, isAuthenticated, authLoading } = useAuth();
 
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate("/onboarding", { replace: true });
+        }
+    }, [authLoading, isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,9 +28,8 @@ export default function LoginPage() {
 
         try {
             const response = await loginRequest({ phone, password });
-            console.log("LOGIN RESPONSE:", response);
             login(response.accessToken);
-            navigate("/onboarding");
+            navigate("/onboarding", { replace: true });
         } catch (err) {
             setError("Login failed");
         } finally {
@@ -32,10 +37,18 @@ export default function LoginPage() {
         }
     };
 
+    if (authLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-background">
+                <p className="text-sm text-muted-foreground">Loading...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-background p-6">
             <div className="w-full max-w-sm rounded-xl border bg-card p-8 shadow-lg">
-                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+                <h1 className="mb-6 text-center text-2xl font-bold">Login</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
@@ -57,7 +70,8 @@ export default function LoginPage() {
                         {loading ? "Loading..." : "Login"}
                     </Button>
                 </form>
-                <p className="text-sm text-center text-muted-foreground">
+
+                <p className="mt-4 text-center text-sm text-muted-foreground">
                     Don’t have an account?{" "}
                     <Link to="/register" className="underline">
                         Register

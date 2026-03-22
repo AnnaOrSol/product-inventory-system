@@ -113,7 +113,7 @@ const Index = () => {
     if (loading || !installationId) return null;
 
     return (
-        <div className="min-h-screen gradient-warm">
+        <div className="min-h-screen  px-3 gradient-warm">
             <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
                 <div className="container py-4">
                     <div className="flex items-center justify-between">
@@ -208,63 +208,68 @@ const Index = () => {
                         )}
 
                         <section>
-                            <Button
+                            <button
                                 onClick={() => navigate("/inventory")}
-                                variant="outline"
-                                className="w-full h-24 border-2 border-dashed border-primary/20 bg-white/40 hover:bg-primary/5 flex justify-between px-6 rounded-3xl group transition-all hover:border-primary/40"
+                                className="w-full rounded-[28px] border border-border/60 bg-white/70 backdrop-blur-sm px-5 py-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-white group"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                                        <Package className="h-7 w-7 text-primary" />
-                                    </div>
-                                    <div className="text-left">
-                                        <span className="block font-bold text-xl text-foreground">
-                                            Full Inventory
-                                        </span>
-                                        <span className="text-xs text-muted-foreground italic">
-                                            Check everything you have in stock
-                                        </span>
-                                    </div>
-                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-105 group-hover:bg-primary/15">
+                                            <Package className="h-7 w-7" />
+                                        </div>
 
-                                <div className="flex items-center gap-3">
-                                    <div className="text-right">
-                                        <span className="block font-mono font-bold text-lg text-primary">
-                                            {items.length}
-                                        </span>
-                                        <span className="text-[10px] uppercase text-muted-foreground">
-                                            Items
-                                        </span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h2 className="text-lg font-semibold text-foreground">
+                                                    Full Inventory
+                                                </h2>
+                                                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                                                    {items.length} items
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                Browse, update and manage everything you have at home
+                                            </p>
+                                        </div>
                                     </div>
-                                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 transition-all duration-300 group-hover:bg-primary/10">
+                                        <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-primary" />
+                                    </div>
                                 </div>
-                            </Button>
+                            </button>
                         </section>
 
                         <section className="space-y-4">
-                            <div className="flex items-center gap-2 text-orange-600">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600"></span>
-                                </span>
-                                <h2 className="text-xs font-bold uppercase tracking-widest">
-                                    Expiring Soon
-                                </h2>
+                            <div className="flex items-center justify-between">
+                                <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-amber-700 border border-amber-100">
+                                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                                    <h2 className="text-xs font-semibold uppercase tracking-[0.18em]">
+                                        Expiring Soon
+                                    </h2>
+                                </div>
+
+                                {urgentItems.length > 0 && (
+                                    <span className="text-xs text-muted-foreground">
+                                        {urgentItems.length} item{urgentItems.length > 1 ? "s" : ""}
+                                    </span>
+                                )}
                             </div>
 
                             <div className="space-y-3">
                                 {urgentItems.length === 0 ? (
-                                    <div className="text-center py-12 bg-white/20 rounded-3xl border-2 border-dashed border-slate-200">
-                                        <p className="text-sm text-muted-foreground italic">
-                                            No items expiring soon. Good job! 🍏
+                                    <div className="rounded-[28px] border border-border/60 bg-white/50 px-6 py-10 text-center shadow-sm">
+                                        <p className="text-sm text-muted-foreground">
+                                            No items expiring soon. Nice work 🍏
                                         </p>
                                     </div>
                                 ) : (
                                     urgentItems.map((item, index) => (
                                         <div
                                             key={item.id}
-                                            className="animate-in fade-in slide-in-from-bottom-2"
-                                            style={{ animationDelay: `${index * 50}ms` }}
+                                            className="animate-in fade-in slide-in-from-bottom-1 duration-500"
+                                            style={{ animationDelay: `${index * 70}ms` }}
                                         >
                                             <InventoryCard
                                                 item={item}
@@ -282,18 +287,19 @@ const Index = () => {
 
             {!showAddForm && !showScanner && (
                 <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-center">
+                    {/*
                     <VoiceInventoryButton products={products} />
 
                     <Button
                         onClick={() => setShowScanner(true)}
-                        className="h-14 w-14 rounded-full shadow-2xl bg-primary text-primary-foreground hover:bg-primary/90"
+                        className="h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200"
                     >
                         <Camera className="h-6 w-6" />
                     </Button>
-
+                    {*/}
                     <Button
                         onClick={() => setShowAddForm(true)}
-                        className="h-14 w-14 rounded-full shadow-2xl"
+                        className="h-14 w-14 rounded-full shadow-xl hover:scale-105 transition-all duration-200"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>

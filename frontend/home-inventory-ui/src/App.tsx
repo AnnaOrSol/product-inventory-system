@@ -9,7 +9,15 @@ import RegisterPage from "@/pages/RegisterPage";
 import FullInventory from "./pages/FullInventory";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -23,8 +31,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-
         <Route path="/register" element={<RegisterPage />} />
+
         <Route
           path="/onboarding"
           element={
@@ -60,6 +68,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/inventory"
           element={

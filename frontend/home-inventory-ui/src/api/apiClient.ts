@@ -1,4 +1,8 @@
-export async function apiFetch(path: string, options: RequestInit = {}) {
+export async function apiFetch(
+    path: string,
+    options: RequestInit = {},
+    skipAuth: boolean = false
+) {
     const token = localStorage.getItem("token");
 
     const headers: Record<string, string> = {
@@ -6,7 +10,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         ...((options.headers as Record<string, string>) || {}),
     };
 
-    if (token) {
+    if (!skipAuth && token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -14,6 +18,12 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         ...options,
         headers,
     });
+
+    if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("currentInstallationId");
+        throw new Error("Unauthorized");
+    }
 
     if (!response.ok) {
         const text = await response.text();

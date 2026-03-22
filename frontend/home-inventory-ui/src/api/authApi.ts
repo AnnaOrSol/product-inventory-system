@@ -21,7 +21,6 @@ export type RegisterResponse = {
     role: string;
 };
 
-
 export type AuthResponse = {
     accessToken: string;
     tokenType: string;
@@ -32,15 +31,23 @@ export type AuthResponse = {
 };
 
 export async function login(data: LoginRequest): Promise<AuthResponse> {
-    return apiFetch(`${CONFIG.API_BASE_URL}/auth/login`, {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+    return apiFetch(
+        `${CONFIG.API_BASE_URL}/auth/login`,
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        },
+        true
+    );
 }
 
 export async function register(data: RegisterRequest): Promise<AuthResponse> {
-    return apiFetch(`${CONFIG.API_BASE_URL}/auth/register`, {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+    return apiFetch(
+        `${CONFIG.API_BASE_URL}/auth/register`,
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        },
+        true
+    );
 }
