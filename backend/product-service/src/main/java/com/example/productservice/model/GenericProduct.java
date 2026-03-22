@@ -22,6 +22,9 @@ public class GenericProduct {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "is_default_requirement", nullable = false)
+    private boolean defaultRequirement = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -59,5 +62,13 @@ public class GenericProduct {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isDefaultRequirement() {
+        return defaultRequirement;
+    }
+
+    public void setDefaultRequirement(boolean defaultRequirement) {
+        this.defaultRequirement = defaultRequirement;
     }
 }

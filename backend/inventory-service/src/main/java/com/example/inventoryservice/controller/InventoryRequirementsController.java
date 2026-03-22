@@ -74,6 +74,14 @@ public class InventoryRequirementsController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/defaults")
+    public ResponseEntity<AddDefaultRequirementsResponse> addDefaultRequirements(
+            @RequestHeader("X-Installation-Id") UUID installationId) {
+        log.info("Adding default requirements for installation: {}", installationId);
+        AddDefaultRequirementsResponse response = inventoryRequirementsService.addDefaultRequirements(installationId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping("/shopping-list")
     public ResponseEntity<List<ShoppngListItemResponse>> getShoppingList(
             @RequestHeader("X-Installation-Id") UUID installationId) {

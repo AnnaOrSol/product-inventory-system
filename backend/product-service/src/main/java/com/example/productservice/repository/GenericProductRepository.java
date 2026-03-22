@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface GenericProductRepository extends JpaRepository<GenericProduct, Long> {
     List<GenericProduct> findAllByCategory_CodeOrderByNameAsc(String categoryCode);
+    List<GenericProduct> findByDefaultRequirementTrueOrderByNameAsc();
 }

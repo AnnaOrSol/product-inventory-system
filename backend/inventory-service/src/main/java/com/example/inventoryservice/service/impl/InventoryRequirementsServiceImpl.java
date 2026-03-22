@@ -1,5 +1,6 @@
 package com.example.inventoryservice.service.impl;
 
+import com.example.inventoryservice.client.ProductServiceClient;
 import com.example.inventoryservice.dto.*;
 import com.example.inventoryservice.model.InventoryItem;
 import com.example.inventoryservice.model.InventoryRequirements;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
 
     private final InventoryRequirementsRepository inventoryRequirementsRepository;
     private final InventoryRepository inventoryRepository;
+    private final ProductServiceClient productServiceClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -99,7 +102,8 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
             item.setMinimumQuantity(request.getMinimumQuantity());
         }
 
-        return mapToResponse(item);
+        InventoryRequirements saved = inventoryRequirementsRepository.save(item);
+        return mapToResponse(saved);
     }
 
     @Override
@@ -107,6 +111,49 @@ public class InventoryRequirementsServiceImpl implements InventoryRequirementsSe
     public void deleteItem(UUID installationId, Long genericProductId) {
         inventoryRequirementsRepository.deleteByInstallationIdAndGenericProductId(installationId, genericProductId);
         log.info("Deleted requirement for installation: {}, genericProductId: {}", installationId, genericProductId);
+    }
+
+    @Override
+    @Transactional
+    public AddDefaultRequirementsResponse addDefaultRequirements(UUID installationId) {
+        List<DefaultRequirementItemDto> defaultItems = productServiceClient.getDefaultRequirementItems();
+
+        int addedCount = 0;
+        int skippedCount = 0;
+
+        List<InventoryRequirements> itemsToSave = new ArrayList<>();
+
+        for (DefaultRequirementItemDto defaultItem : defaultItems) {
+            boolean exists = inventoryRequirementsRepository.existsByInstallationIdAndGenericProductId(
+                    installationId,
+                    defaultItem.genericProductId()
+            );
+
+            if (exists) {
+                skippedCount++;
+                continue;
+            }
+
+            InventoryRequirements item = new InventoryRequirements();
+            item.setInstallationId(installationId);
+            item.setGenericProductId(defaultItem.genericProductId());
+            item.setGenericProductName(defaultItem.genericProductName());
+            item.setMinimumQuantity(
+                    defaultItem.defaultMinimumQuantity() != null ? defaultItem.defaultMinimumQuantity() : 1
+            );
+
+            itemsToSave.add(item);
+            addedCount++;
+        }
+
+        if (!itemsToSave.isEmpty()) {
+            inventoryRequirementsRepository.saveAll(itemsToSave);
+        }
+
+        log.info("Added {} default requirements and skipped {} existing ones for installation {}",
+                addedCount, skippedCount, installationId);
+
+        return new AddDefaultRequirementsResponse(addedCount, skippedCount);
     }
 
     @Transactional

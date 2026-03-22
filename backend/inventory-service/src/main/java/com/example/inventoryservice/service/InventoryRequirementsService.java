@@ -1,9 +1,6 @@
 package com.example.inventoryservice.service;
 
-import com.example.inventoryservice.dto.CreateInventoryRequiredItemRequest;
-import com.example.inventoryservice.dto.InventoryRequirementsResponse;
-import com.example.inventoryservice.dto.ShoppngListItemResponse;
-import com.example.inventoryservice.dto.UpdateInventoryRequirementsRequest;
+import com.example.inventoryservice.dto.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,4 +14,5 @@ public interface InventoryRequirementsService {
     public InventoryRequirementsResponse updateItem(UUID installationId, Long productId, UpdateInventoryRequirementsRequest request);
     public void deleteItem(UUID installationId, Long productId);
     void deleteItems(UUID installationId, List<Long> genericProductIds);
+    AddDefaultRequirementsResponse addDefaultRequirements(UUID installationId);
 }
