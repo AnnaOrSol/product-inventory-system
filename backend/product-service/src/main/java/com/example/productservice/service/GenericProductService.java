@@ -1,5 +1,6 @@
 package com.example.productservice.service;
 
+import com.example.productservice.dto.DefaultRequirementItemResponse;
 import com.example.productservice.dto.GenericProductResponse;
 import com.example.productservice.model.GenericProduct;
 import com.example.productservice.repository.GenericProductRepository;
@@ -20,6 +21,18 @@ public class GenericProductService {
         return genericProductRepository.findAll()
                 .stream()
                 .map(this::toResponse)
+                .toList();
+    }
+
+    public List<DefaultRequirementItemResponse> getDefaultRequirements() {
+        List<GenericProduct> products = genericProductRepository.findByDefaultRequirementTrueOrderByNameAsc();
+
+        return products.stream()
+                .map(product -> new DefaultRequirementItemResponse(
+                        product.getId(),
+                        product.getName(),
+                        1
+                ))
                 .toList();
     }
 

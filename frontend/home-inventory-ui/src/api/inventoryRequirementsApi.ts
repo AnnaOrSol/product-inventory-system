@@ -5,6 +5,11 @@ import { installationService } from "@/services/installationService";
 
 const API_BASE = API_PATHS.INVENTORY_API;
 
+export type AddDefaultRequirementsResponse = {
+    addedCount: number;
+    skippedCount: number;
+};
+
 const getHeaders = () => ({
     "X-Installation-Id": installationService.getId() || "",
 });
@@ -17,6 +22,13 @@ export async function fetchInventoryRequirements(): Promise<InventoryRequirement
 
 export async function fetchShoppingList(): Promise<any[]> {
     return apiFetch(`${API_BASE}/requirements/shopping-list`, {
+        headers: getHeaders(),
+    });
+}
+
+export async function addDefaultInventoryRequirements(): Promise<AddDefaultRequirementsResponse> {
+    return apiFetch(`${API_BASE}/requirements/defaults`, {
+        method: "POST",
         headers: getHeaders(),
     });
 }

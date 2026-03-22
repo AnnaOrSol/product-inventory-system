@@ -19,6 +19,7 @@ public interface InventoryRequirementsRepository extends JpaRepository<Inventory
             UUID installationId,
             List<Long> genericProductIds
     );
+    boolean existsByInstallationIdAndGenericProductId(UUID installationId, Long genericProductId);
 
     void deleteByInstallationIdAndGenericProductId(UUID installationId, Long genericProductId);
 

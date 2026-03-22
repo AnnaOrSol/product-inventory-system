@@ -7,6 +7,7 @@ import OnboardingPage from "@/pages/OnboardingPage";
 import { useAuth } from "@/context/AuthContext";
 import RegisterPage from "@/pages/RegisterPage";
 import FullInventory from "./pages/FullInventory";
+import { Toaster } from "sonner";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, authLoading } = useAuth();
@@ -29,6 +30,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster richColors position="top-center" />
+
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
