@@ -1,8 +1,11 @@
 package com.example.inventoryservice.service.impl;
 
 import com.example.inventoryservice.dto.CreateInventoryItemRequest;
+import com.example.inventoryservice.dto.DeleteInventoryItemRequest;
 import com.example.inventoryservice.dto.InventoryItemResponse;
 import com.example.inventoryservice.dto.UpdateInventoryItemRequest;
+import com.example.inventoryservice.event.InventoryEventReason;
+import com.example.inventoryservice.event.InventoryEventType;
 import com.example.inventoryservice.model.InventoryItem;
 import com.example.inventoryservice.repository.InventoryRepository;
 import com.example.inventoryservice.service.InventoryItemService;
@@ -20,7 +23,9 @@ import java.util.UUID;
 public class InventoryItemServiceImpl implements InventoryItemService {
 
     private final InventoryRepository inventoryRepository;
-
+    private final KafkaInventoryEventPublisher kafkaInventoryEventPublisher;
+    private static final String ITEM_UPDATED_DETAILS = "Item updated";
+    private static final String ITEM_CONSUMED_DETAILS = "Item consumed";
     @Override
     @Transactional(readOnly = true)
     public InventoryItemResponse getInventoryItemById(Long id) {
@@ -53,6 +58,15 @@ public class InventoryItemServiceImpl implements InventoryItemService {
 
         InventoryItem saved = inventoryRepository.save(item);
         log.info("New item added to inventory: id={}, genericProduct={}", saved.getId(), saved.getGenericProductName());
+        kafkaInventoryEventPublisher.publish(
+                saved.getInstallationId(),
+                saved.getGenericProductId(),
+                saved.getGenericProductName(),
+                saved.getQuantity(),
+                InventoryEventType.ITEM_ADDED,
+                InventoryEventReason.PURCHASE,
+                "Item added to inventory"
+        );
         return mapToResponse(saved);
     }
 
@@ -65,21 +79,47 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         if (request.getQuantity() != null) item.setQuantity(request.getQuantity());
         if (request.getLocation() != null) item.setLocation(request.getLocation());
         if (request.getNotes() != null) item.setNotes(request.getNotes());
-
+        InventoryEventType updateType = InventoryEventType.ITEM_UPDATED;
+        InventoryEventReason updateReason = InventoryEventReason.MANUAL_UPDATE;
+        String details = ITEM_UPDATED_DETAILS;
+        if(request.getQuantity() != null && item.getQuantity() != request.getQuantity()){
+            updateType = InventoryEventType.ITEM_DEPLETED;
+            updateReason = InventoryEventReason.CONSUMED;
+            details = ITEM_CONSUMED_DETAILS;
+        }
         InventoryItem saved = inventoryRepository.save(item);
         log.info("Item updated: installation={}, product={}", installationId, id);
-
+        kafkaInventoryEventPublisher.publish(
+                saved.getInstallationId(),
+                saved.getGenericProductId(),
+                saved.getGenericProductName(),
+                saved.getQuantity(),
+                updateType,
+                updateReason,
+                details
+        );
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional
-    public void deleteItem(UUID installationId, Long id) {
+    public void deleteItem(UUID installationId, Long id, DeleteInventoryItemRequest request) {
         InventoryItem item = inventoryRepository.findByInstallationIdAndId(installationId, id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         inventoryRepository.delete(item);
         log.info("Item deleted: installation={}, product={}", installationId, id);
+        kafkaInventoryEventPublisher.publish(
+                item.getInstallationId(),
+                item.getGenericProductId(),
+                item.getGenericProductName(),
+                item.getQuantity(),
+                request.reason() == InventoryEventReason.EXPIRED
+                        ? InventoryEventType.ITEM_EXPIRED_DISCARDED
+                        : InventoryEventType.ITEM_DELETED,
+                request.reason(),
+                request.details()
+        );
     }
 
 
