@@ -1,148 +1,101 @@
-# Product Inventory System 🏠📦
-A full-stack, microservices-based home inventory management system.
+# 🏠 Smart Inventory Management System (Full-Stack & AI-Integrated)
 
-Manage your household inventory, add products manually or via barcode scan, create missing products in a global catalog, detect products from photos using an embedded YOLOv8 model, and generate a shopping list based on required items that are missing from inventory—then share it via WhatsApp.
-
----
-
-## ✨ Key Features
-- **Add existing products to inventory**
-  - Manual search
-  - **Barcode scanning**
-- **Add new products** to the global product catalog (when not found)
-- **AI product detection from photos**
-  - YOLOv8 model (trained and integrated into the frontend flow)
-- **Smart shopping list generation**
-  - Compare **required items** vs. current inventory
-  - Send shopping list to **WhatsApp**
+A sophisticated, enterprise-grade distributed platform for managing household and office inventories. This system combines **Microservices Architecture**, **Real-time Event Streaming**, and **Computer Vision (AI)** to provide a seamless inventory tracking experience.
 
 ---
 
-## 🧱 Architecture (High Level)
-This system is built as microservices communicating via REST:
+## 🏗 System Architecture
 
-- **Product Service (Global Catalog)**
-  - Stores all products available in the system (not tied to a specific home/installation)
-- **Inventory Service (Core Domain)**
-  - Manages “installations” (each installation = a home)
-  - Stores inventory items per installation
-  - Stores “required items” per installation (minimum household requirements)
+The system is built on a highly scalable Microservices Architecture. All client-side communication is routed through a centralized API Gateway, ensuring security and unified entry points.
 
-**Frontend** communicates with the backend via REST.  
-**Database**: PostgreSQL.  
-**Containerization**: Docker.
+### 🛰 Backend Services (The "Brain")
 
+1.  **Gateway Service:** * The single entry point for the Frontend (including **Login**).
+    * Handles dynamic routing to internal microservices.
+2.  **Auth Service:** * Manages user identities and security.
+    * Implements **JWT (JSON Web Tokens)** for stateless authentication.
+3.  **Product Service (Global Catalog & Recognition):** * Manages a dual-layer catalog: **Generic products** (e.g., "Milk") and **Branded products** (e.g., "Tnuva Milk 5%").
+    * Supports **Barcode-based lookups** for rapid item identification.
+4.  **Inventory Service (Core Logic):** * **Multi-Installation Support:** Manages stock for different locations (Home, Office, etc.).
+    * **Shopping List Engine:** Automatically calculates gaps between current stock and mandatory requirements.
+    * **Shared Notes:** Real-time virtual "fridge notes" shared among installation members.
+    * **Event Producer:** Streams every inventory change to Kafka for asynchronous processing.
+5.  **Inventory Events Service (Analytics & Audit):** * **Kafka Consumer:** Listens to the `inventory.events` topic.
+    * Persists a granular history of every product movement for future AI-driven consumption analytics.
+
+### 💻 Frontend (The "Client" & AI Engine)
+A modern Web/Mobile interface that acts as the primary interaction layer. 
+* **Edge AI Integration:** Implements a custom-trained **YOLOv8** model directly in the browser/client to identify grocery items from live camera feeds or photos.
+* **Scan-to-Add:** Utilizes camera integration for both AI recognition and Barcode scanning.
+
+---
+
+## 🌟 Advanced Features & Tech Highlights
+
+* **Computer Vision (YOLOv8):** Custom-trained model integrated into the Frontend to transform visual data into actionable inventory updates.
+* **Event-Driven Resiliency:** Using **Apache Kafka** to decouple the core inventory logic from history and analytics, ensuring high performance.
+* **Database Versioning (Flyway):** All PostgreSQL schemas are managed via **Flyway Migrations**, ensuring consistent and reproducible database states across development and production.
+* **Idempotent Processing:** Ensures that network retries in Kafka do not result in duplicate historical records.
+
+---
+
+## 🚦 Request Lifecycle
+
+1.  **Security:** Frontend → **Gateway** → **Auth Service** (JWT Issue).
+2.  **Action:** Frontend (JWT) → **Gateway** → **Target Service** (Inventory/Product).
+3.  **Streaming:** Inventory Service → **Kafka** → Inventory Events Service (History Persistence).
 
 ---
 
 ## 🛠 Tech Stack
-- **Backend**: Java, Spring Boot
-- **Frontend**: TypeScript (React)
-- **Database**: PostgreSQL
-- **Infra**: Docker / Docker Compose
 
+* **Backend:** Java 17, Spring Boot 3, Spring Cloud Gateway, Spring Security.
+* **Messaging:** Apache Kafka.
+* **Data Persistence:** PostgreSQL, **Flyway**.
+* **Infrastructure:** Docker & Docker Compose.
+### 💻 Frontend
+* **Framework:** React 19 (TypeScript) with Vite.
+* **Styling:** Tailwind CSS 4, Radix UI, Lucide Icons.
+* **AI Engine:** TensorFlow.js (Running custom YOLOv8 model for object detection).
+* **Scanning:** HTML5-QRCode for real-time barcode processing.
+* **State & Routing:** React Router 7, Sonner (Notifications).
 ---
 
-## 📁 Repository Structure
-├── backend/ # Spring Boot services (Product + Inventory)
+## 📂 Project Structure
 
-├── frontend/home-inventory-ui/ # React + TypeScript UI
-
-└── infra/ # Docker / Compose / infra-related configs
-
----
+```text
+.
+├── gateway-service/           # API Gateway & Routing
+├── auth-service/              # JWT Auth & User Management
+├── product-service/           # Catalog, Barcodes & AI metadata
+├── inventory-service/         # Stock Logic, Notes & Shopping List (Producer)
+├── inventory-events-service/  # Audit Log & Analytics (Consumer)
+├── frontend/                  # Client App with YOLOv8 Integration
+├── infra/                     # Docker Compose, Kafka & DB Configs
+└── README.md                  # This file
+```
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Docker + Docker Compose
-- Java 17+ (if running services locally)
-- Node.js 18+ (if running frontend locally)
+### 1. Full System Launch (Backend)
+The entire backend ecosystem, including all 5 microservices, databases, and Kafka, is containerized. To launch the complete system, run:
 
-### 1) Clone
-```bash
-git clone https://github.com/AnnaOrSol/product-inventory-system.git
-cd product-inventory-system
-```
-### 2) Run with Docker (Recommended)
-If you already have a docker-compose.yml under infra/, run it from there.
-Update the command below to match your actual compose filename/path.
 ```bash
 cd infra
-docker compose up --build
+docker-compose up -d
 ```
-#### Then open:
-Frontend: http://localhost:XXXX
-Inventory Service: http://localhost:XXXX
-Product Service: http://localhost:XXXX
-Replace XXXX with the ports configured in your project.
 
-### 3) Run Locally (Dev Mode)
-#### Backend
-Open two terminals (one per service), then run each Spring Boot service.
-Examples (adjust to your module names):
+### 2. Frontend Launch
+Once the backend is healthy, start the client application:
 ```bash
-cd backend
-# ./mvnw spring-boot:run
-# or run via IntelliJ
-```
-#### Frontend
-```bash
-cd frontend/home-inventory-ui
+cd frontend
 npm install
-npm run dev
+npm start
 ```
 
----
+### 3. Verification
+**API Gateway:** Reachable at http://localhost:8087 (or your chosen port).
 
-## ⚙️ Configuration
-Create environment variables as needed (examples below—adjust to your code):
-#### Backend (examples)
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/<db>
-SPRING_DATASOURCE_USERNAME=<user>
-SPRING_DATASOURCE_PASSWORD=<password>
-#### Frontend (examples)
-VITE_INVENTORY_API_BASE_URL=http://localhost:XXXX
-VITE_PRODUCT_API_BASE_URL=http://localhost:XXXX
+**Kafka UI:** Access http://localhost:8090 to monitor events.
 
----
-
-## 🔌 API Overview (Example)
-Replace endpoint names with the real ones from your controllers.
-#### Product Service
-GET /products?query=milk
-
-POST /products (create new global product)
-
-GET /products/barcode/{barcode}
-
-#### Inventory Service
-POST /installations (create a home)
-
-POST /installations/{id}/inventory-items
-
-POST /installations/{id}/required-items
-
-GET /installations/{id}/shopping-list
-
----
-## AI Product Detection (YOLOv8)
-The system supports detecting products from images using a trained YOLOv8 model.
-High-level flow:
-User opens camera
-Frontend runs detection on live
-Detected product candidates can be added to the inventory with user's confirmation
-
-## WhatsApp Shopping List
-The system can generate a shopping list by comparing:
-Required items (per home) ✅
-Current inventory items ❌
-Then it sends/shares the list via WhatsApp.
-
----
-## 🗺 Future Roadmap:
- 1. Add authentication + user accounts (instead of working with installations), develop settings page.
- 2. Smart Expiry Predictions: Use Machine Learning to predict when a product is likely to run out based on historical household consumption patterns.
- 3. Improve AI detection UX (add more products to detect, improve detection)
- 4. Observability (central logs, metrics)
- 5. Event-Driven Communication: Replace synchronous REST calls between services with Apache Kafka to improve system resilience.
+**YOLOv8:** Ensure your camera permissions are enabled in the browser for product recognition.
