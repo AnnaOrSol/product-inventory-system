@@ -8,6 +8,9 @@ A sophisticated, enterprise-grade distributed platform for managing household an
 
 The system is built on a highly scalable Microservices Architecture. All client-side communication is routed through a centralized API Gateway, ensuring security and unified entry points.
 
+#### System diagram (High Level)
+<img width="1406" height="768" alt="Image" src="https://github.com/user-attachments/assets/dbe425d2-0a2b-4a44-8eba-85882c600d25" />
+
 ### 🛰 Backend Services (The "Brain")
 
 1.  **Gateway Service:** * The single entry point for the Frontend (including **Login**).
