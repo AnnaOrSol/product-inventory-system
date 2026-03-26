@@ -1,6 +1,7 @@
 package com.example.inventoryservice.controller;
 
 import com.example.inventoryservice.dto.CreateInventoryItemRequest;
+import com.example.inventoryservice.dto.DeleteInventoryItemRequest;
 import com.example.inventoryservice.dto.InventoryItemResponse;
 import com.example.inventoryservice.dto.UpdateInventoryItemRequest;
 import com.example.inventoryservice.service.InventoryItemService;
@@ -57,10 +58,11 @@ public class InventoryController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @RequestHeader("X-Installation-Id") UUID installationId,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestBody DeleteInventoryItemRequest request
     ) {
-        log.info("Deleting product {} from installation {}", id, installationId);
-        inventoryItemService.deleteItem(installationId, id);
+        log.info("Deleting product {} from installation {}", id, installationId, request);
+        inventoryItemService.deleteItem(installationId, id, request);
         return ResponseEntity.noContent().build();
     }
 }
