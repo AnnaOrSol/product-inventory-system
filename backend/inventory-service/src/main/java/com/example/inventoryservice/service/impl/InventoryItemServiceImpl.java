@@ -114,13 +114,20 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                 item.getGenericProductId(),
                 item.getGenericProductName(),
                 item.getQuantity(),
-                request.reason() == InventoryEventReason.EXPIRED
-                        ? InventoryEventType.ITEM_EXPIRED_DISCARDED
-                        : InventoryEventType.ITEM_DELETED,
+                getCorrectEventType(request.reason()),
                 request.reason(),
                 request.details()
         );
     }
+
+    private InventoryEventType getCorrectEventType (InventoryEventReason reason){
+        if (reason == InventoryEventReason.EXPIRED) return InventoryEventType.ITEM_EXPIRED_DISCARDED;
+        else if (reason == InventoryEventReason.CONSUMED) return InventoryEventType.ITEM_DEPLETED;
+        else if (reason == InventoryEventReason.DAMAGED) return InventoryEventType.ITEM_DELETED;
+        else if (reason == InventoryEventReason.USER_ERROR) return InventoryEventType.ITEM_DELETED;
+        else return InventoryEventType.ITEM_DELETED;
+    }
+
 
 
     private InventoryItemResponse mapToResponse(InventoryItem item) {

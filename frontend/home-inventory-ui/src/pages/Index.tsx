@@ -24,6 +24,7 @@ import { VoiceInventoryButton } from "@/components/VoiceInventoryButton";
 import { fetchProducts } from "@/api/productApi";
 import type { Product } from "@/types/product";
 import { HomeNotes } from "@/components/HomeNotes";
+import HomeDashboard from "@/components/HomeDashboard";
 
 const Index = () => {
     const navigate = useNavigate();
@@ -198,18 +199,29 @@ const Index = () => {
 
                         <hr className="opacity-50" />
 
-                        {showAddForm && (
-                            <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                                <AddItemForm
-                                    onItemAdded={loadItems}
-                                    onClose={() => setShowAddForm(false)}
-                                />
-                            </div>
-                        )}
-
+                        <HomeDashboard
+                            totalItems={items.length}
+                            expiringSoonCount={urgentItems.length}
+                            onOpenInventory={() =>
+                                navigate("/inventory", {
+                                    state: { initialFilter: "all" },
+                                })
+                            }
+                            onOpenShoppingList={() => navigate("/requirements")}
+                            onOpenExpiringSoon={() =>
+                                navigate("/inventory", {
+                                    state: { initialFilter: "expiringSoon" },
+                                })
+                            }
+                            onAddItem={() => setShowAddForm(true)}
+                            onOpenStats={() => navigate("/stats")}
+                        />
+                        {/*
                         <section>
                             <button
-                                onClick={() => navigate("/inventory")}
+                                onClick={() => navigate("/inventory", {
+                                    state: { initialFilter: "all" },
+                                })}
                                 className="w-full rounded-[28px] border border-border/60 bg-white/70 backdrop-blur-sm px-5 py-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-white group"
                             >
                                 <div className="flex items-center justify-between gap-4">
@@ -281,13 +293,14 @@ const Index = () => {
                                 )}
                             </div>
                         </section>
+                        */}
                     </div>
                 )}
             </main>
-
+            {/*
             {!showAddForm && !showScanner && (
                 <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-center">
-                    {/*
+                    
                     <VoiceInventoryButton products={products} />
 
                     <Button
@@ -296,13 +309,46 @@ const Index = () => {
                     >
                         <Camera className="h-6 w-6" />
                     </Button>
-                    {*/}
+                    
                     <Button
                         onClick={() => setShowAddForm(true)}
                         className="h-14 w-14 rounded-full shadow-xl hover:scale-105 transition-all duration-200"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>
+                </div>
+            )}
+                {*/}
+            {showAddForm && (
+                <div className="fixed inset-0 z-[9999] bg-black/30 flex items-end sm:items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0"
+                        onClick={() => setShowAddForm(false)}
+                    />
+
+                    <div className="relative w-full max-w-2xl max-h-[90vh] overflow-visible rounded-[28px] border border-black/10 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.22)]">
+                        <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-background px-5 py-4 rounded-t-[28px]">
+                            <h2 className="text-lg font-semibold">Add item</h2>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowAddForm(false)}
+                                className="rounded-xl"
+                            >
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </div>
+
+                        <div className="max-h-[calc(90vh-72px)] overflow-y-auto p-5">
+                            <AddItemForm
+                                onItemAdded={() => {
+                                    setShowAddForm(false);
+                                    loadItems();
+                                }}
+                                onClose={() => setShowAddForm(false)}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
