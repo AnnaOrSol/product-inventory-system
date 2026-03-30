@@ -56,7 +56,7 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
     };
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover modal={true} open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -71,18 +71,20 @@ export function ProductSelect({ value, onChange }: ProductSelectProps) {
             </PopoverTrigger>
 
             <PopoverContent
-                className="w-[calc(100vw-2rem)] md:w-[350px] p-0 bg-white border-2 shadow-xl rounded-xl"
+                className="z-[10000] w-[calc(100vw-2rem)] md:w-[350px] p-0 bg-white border-2 shadow-xl rounded-xl"
                 align="start"
+                side="bottom"
                 sideOffset={5}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onCloseAutoFocus={(e) => e.preventDefault()}
             >
                 <div className="flex items-center border-b p-3 bg-slate-50/50 sticky top-0 z-10">
                     <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                     <Input
-                        placeholder="Search generic product..."
+                        placeholder="Search product..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="h-9 w-full border-none bg-transparent focus-visible:ring-0 text-base"
-                        autoFocus
                     />
                 </div>
 

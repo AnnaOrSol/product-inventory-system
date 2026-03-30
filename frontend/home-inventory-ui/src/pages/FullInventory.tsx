@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     Plus,
     ArrowLeft,
@@ -23,6 +23,9 @@ import { installationService } from "@/services/installationService";
 
 import type { InventoryItem } from "@/types/inventory";
 import type { Product } from "@/types/product";
+import type { DeleteInventoryItemReason } from "@/api/inventoryApi";
+import { DeleteReasonDialog } from "@/components/DeleteReasonDialog";
+
 
 const FullInventory = () => {
     const navigate = useNavigate();
@@ -38,6 +41,16 @@ const FullInventory = () => {
 
     const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [showDeleteReasonDialog, setShowDeleteReasonDialog] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const location = useLocation();
+
+    const initialFilter =
+        location.state?.initialFilter === "expiringSoon"
+            ? "expiringSoon"
+            : "all";
+
+    const [inventoryFilter, setInventoryFilter] = useState<"all" | "expiringSoon">(initialFilter);
 
     const loadData = async () => {
         setLoading(true);
@@ -73,6 +86,21 @@ const FullInventory = () => {
         );
     }, [products]);
 
+    const isExpiringSoon = (bestBefore?: string | null) => {
+        if (!bestBefore) return false;
+
+        const expiryDate = new Date(bestBefore);
+        if (Number.isNaN(expiryDate.getTime())) return false;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const diffInMs = expiryDate.getTime() - today.getTime();
+        const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+        return diffInDays >= 0 && diffInDays <= 7;
+    };
+
     const filteredItems = useMemo(() => {
         return items.filter((item) => {
             const matchesSearch = (item.genericProductName ?? "")
@@ -86,9 +114,18 @@ const FullInventory = () => {
             const matchesCategory =
                 selectedCategory === "All" || itemCat === selectedCategory;
 
-            return matchesSearch && matchesCategory;
+            const matchesInventoryFilter =
+                inventoryFilter === "all" || isExpiringSoon(item.bestBefore);
+
+            return matchesSearch && matchesCategory && matchesInventoryFilter;
         });
-    }, [items, searchQuery, selectedCategory, categoryByProductId]);
+    }, [
+        items,
+        searchQuery,
+        selectedCategory,
+        categoryByProductId,
+        inventoryFilter,
+    ]);
 
     const toggleSelectItem = (id: number) => {
         setSelectedItemIds((prev) =>
@@ -105,18 +142,39 @@ const FullInventory = () => {
         );
     };
 
-    const handleBulkDelete = async () => {
+    const handleBulkDelete = () => {
         if (!selectedItemIds.length) return;
-        if (!window.confirm(`Delete ${selectedItemIds.length} items?`)) return;
+        setShowDeleteReasonDialog(true);
+    };
 
+    const handleConfirmBulkDelete = async ({
+        reason,
+        details,
+    }: {
+        reason: DeleteInventoryItemReason;
+        details?: string;
+    }) => {
         try {
-            await Promise.all(selectedItemIds.map((id) => deleteInventoryItem(id)));
+            setDeleteLoading(true);
+
+            await Promise.all(
+                selectedItemIds.map((id) =>
+                    deleteInventoryItem(id, {
+                        reason,
+                        details,
+                    })
+                )
+            );
+
             setSelectedItemIds([]);
             setIsSelectionMode(false);
+            setShowDeleteReasonDialog(false);
             await loadData();
         } catch (error) {
             console.error("Failed to delete some items:", error);
             alert("Failed to delete some items");
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -180,12 +238,39 @@ const FullInventory = () => {
                         />
                     </div>
                 </div>
+                <div className="mb-6 flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setInventoryFilter("all")}
+                        className={`rounded-full border ${inventoryFilter === "all"
+                            ? "border-black bg-slate-100"
+                            : "border-transparent"
+                            }`}
+                    >
+                        All Items
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setInventoryFilter("expiringSoon")}
+                        className={`rounded-full border ${inventoryFilter === "expiringSoon"
+                            ? "border-black bg-slate-100"
+                            : "border-transparent"
+                            }`}
+                    >
+                        Expiring Soon
+                    </Button>
+                </div>
 
                 {/* Empty state */}
                 {filteredItems.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed p-10 text-center">
+                    <div className="rounded-2xl p-10 text-center">
                         <p className="text-sm text-muted-foreground">
-                            No inventory items found.
+                            {inventoryFilter === "expiringSoon"
+                                ? "No items are expiring soon."
+                                : "No inventory items found."}
                         </p>
                     </div>
                 ) : (
@@ -266,20 +351,26 @@ const FullInventory = () => {
 
             {/* Add Item Overlay */}
             {showAddForm && (
-                <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-                    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border bg-background shadow-2xl">
-                        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background px-4 py-3 rounded-t-2xl">
+                <div className="fixed inset-0 z-[9999] bg-black/30 flex items-end sm:items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0"
+                        onClick={() => setShowAddForm(false)}
+                    />
+
+                    <div className="relative w-full max-w-2xl max-h-[90vh] overflow-visible rounded-[28px] border border-black/10 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.22)]">
+                        <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-background px-5 py-4 rounded-t-[28px]">
                             <h2 className="text-lg font-semibold">Add item</h2>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setShowAddForm(false)}
+                                className="rounded-xl"
                             >
                                 <X className="h-5 w-5" />
                             </Button>
                         </div>
 
-                        <div className="p-4">
+                        <div className="max-h-[calc(90vh-72px)] overflow-y-auto p-5">
                             <AddItemForm
                                 onItemAdded={() => {
                                     setShowAddForm(false);
@@ -326,7 +417,17 @@ const FullInventory = () => {
                     </div>
                 </div>
             )}
-
+            <DeleteReasonDialog
+                open={showDeleteReasonDialog}
+                itemCount={selectedItemIds.length}
+                loading={deleteLoading}
+                onClose={() => {
+                    if (!deleteLoading) {
+                        setShowDeleteReasonDialog(false);
+                    }
+                }}
+                onConfirm={handleConfirmBulkDelete}
+            />
             {/* Floating Add Button */}
             <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 items-center">
                 <Button

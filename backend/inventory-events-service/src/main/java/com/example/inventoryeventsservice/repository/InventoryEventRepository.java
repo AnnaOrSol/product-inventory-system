@@ -4,14 +4,21 @@ import com.example.inventoryeventsservice.entity.InventoryEventEntity;
 import com.example.inventoryeventsservice.enums.InventoryEventType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public interface InventoryEventRepository extends JpaRepository<InventoryEventEntity, Long> {
+public interface InventoryEventRepository extends JpaRepository<InventoryEventEntity, Long>, InventoryEventStatsRepository {
 
     boolean existsByEventId(UUID eventId);
 
     List<InventoryEventEntity> findAllByInstallationIdOrderByOccurredAtDesc(UUID installationId);
 
     long countByInstallationIdAndEventType(UUID installationId, InventoryEventType eventType);
+
+    List<InventoryEventEntity> findAllByInstallationIdAndOccurredAtBetweenOrderByOccurredAtAsc(
+            UUID installationId,
+            Instant start,
+            Instant end
+    );
 }

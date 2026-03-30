@@ -8,6 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import RegisterPage from "@/pages/RegisterPage";
 import FullInventory from "./pages/FullInventory";
 import { Toaster } from "sonner";
+import { Suspense, lazy } from "react";
+
+const StatsPage = lazy(() => import("@/pages/StatsPage"));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, authLoading } = useAuth();
@@ -71,7 +74,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/stats"
+          element={
+            <Suspense fallback={<div className="p-6">Loading...</div>}>
+              <StatsPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/inventory"
           element={

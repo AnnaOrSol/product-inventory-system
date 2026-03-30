@@ -5,6 +5,18 @@ import { installationService } from "@/services/installationService";
 
 const API_BASE = API_PATHS.INVENTORY_API;
 
+export type DeleteInventoryItemReason =
+    | "CONSUMED"
+    | "EXPIRED"
+    | "USER_ERROR"
+    | "DAMAGED"
+    | "OTHER";
+
+export type DeleteInventoryItemRequest = {
+    reason: DeleteInventoryItemReason;
+    details?: string;
+};
+
 export async function fetchInventory(): Promise<InventoryItem[]> {
     return apiFetch(`${API_BASE}/items`, {
         headers: {
@@ -40,11 +52,15 @@ export async function updateInventoryItem(
     });
 }
 
-export async function deleteInventoryItem(id: number) {
+export async function deleteInventoryItem(
+    id: number,
+    request: DeleteInventoryItemRequest
+) {
     return apiFetch(`${API_BASE}/${id}`, {
         method: "DELETE",
         headers: {
             "X-Installation-Id": installationService.getId() || "",
         },
+        body: JSON.stringify(request),
     });
 }
