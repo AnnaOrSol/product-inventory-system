@@ -93,7 +93,7 @@ export default function OnboardingPage() {
                     <div className="space-y-3">
                         {!loadingInstallations && myInstallations.length > 0 && (
                             <Button className="w-full" onClick={() => setMode("select")}>
-                                Choose existing home
+                                Select a home
                             </Button>
                         )}
 
@@ -102,11 +102,11 @@ export default function OnboardingPage() {
                             className="w-full"
                             onClick={() => setMode("create")}
                         >
-                            Create new installation
+                            Create new home
                         </Button>
 
                         <Button variant="secondary" className="w-full" onClick={() => setMode("join")}>
-                            Join existing installation
+                            Join a home
                         </Button>
                     </div>
                 )}

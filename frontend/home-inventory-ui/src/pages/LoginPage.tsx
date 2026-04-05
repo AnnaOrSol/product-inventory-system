@@ -28,7 +28,14 @@ export default function LoginPage() {
 
         try {
             const response = await loginRequest({ phone, password });
-            login(response.accessToken);
+            login({
+                token: response.accessToken,
+                user: {
+                    userId: response.userId,
+                    name: response.name,
+                    phone: response.phone,
+                },
+            });
             navigate("/onboarding", { replace: true });
         } catch (err) {
             setError("Login failed");

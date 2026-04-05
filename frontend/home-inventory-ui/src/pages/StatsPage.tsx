@@ -101,14 +101,14 @@ export default function StatsPage() {
                     📊 Inventory Insights
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    See how your household inventory behaves over time.
+                    Track how your home inventory changes over time.
                 </p>
             </div>
 
             {/* Summary cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <StatCard title="Items Added" value={summary.itemsAdded} />
-                <StatCard title="Deleted" value={summary.itemsDeleted} />
+                <StatCard title="Removed" value={summary.itemsDeleted} />
                 <StatCard title="Depleted" value={summary.itemsDepleted} />
                 <StatCard title="Expired" value={summary.itemsExpiredDiscarded} />
             </div>
@@ -179,7 +179,7 @@ export default function StatsPage() {
             {/* Top wasted */}
             <Card className="rounded-[24px] border-black/10 shadow-sm">
                 <CardHeader>
-                    <CardTitle>Top wasted products</CardTitle>
+                    <CardTitle>Most wasted products</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {topWasted.length === 0 ? (

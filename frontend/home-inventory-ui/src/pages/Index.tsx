@@ -28,7 +28,7 @@ import HomeDashboard from "@/components/HomeDashboard";
 
 const Index = () => {
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
 
     const [installationId, setInstallationId] = useState<string | null>(null);
     const [items, setItems] = useState<InventoryItem[]>([]);
@@ -75,6 +75,13 @@ const Index = () => {
         setItems((prev) => prev.filter((item) => item.id !== inventoryItemId));
     };
 
+    const convertPhoneNumber = (phone: string) => {
+        // Remove non-digit characters
+        const digits = phone.replace(/\D/g, "");
+        // Format as Israeli phone number (e.g., 972547506539)
+        return digits.startsWith("972") ? digits : `972${digits.slice(1)}`;
+    };
+
     const handleShareToWhatsApp = async () => {
         try {
             const missingItems = await fetchShoppingList();
@@ -85,10 +92,10 @@ const Index = () => {
 
             let message = "🛒 *Home Shopping List:* \n\n";
             missingItems.forEach((item: any) => {
-                message += `• *${item.productName}*: Missing ${item.missingQuantity} units\n`;
+                message += `• *${item.productName}*: ${item.missingQuantity} \n`;
             });
 
-            window.location.href = `whatsapp://send?phone=972547506539&text=${encodeURIComponent(message)}`;
+            window.location.href = `whatsapp://send?phone=${convertPhoneNumber(user?.phone || "")}&text=${encodeURIComponent(message)}`;
         } catch (error) {
             alert("Error fetching list");
         }

@@ -1,10 +1,17 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
+type AuthUser = {
+    userId: string;
+    name: string;
+    phone: string;
+};
+
 type AuthContextType = {
     token: string | null;
+    user: AuthUser | null;
     isAuthenticated: boolean;
     authLoading: boolean;
-    login: (token: string) => void;
+    login: (auth: { token: string; user: AuthUser }) => void;
     logout: () => void;
 };
 
@@ -25,8 +32,26 @@ function isTokenExpired(token: string): boolean {
     }
 }
 
+function extractUserFromToken(token: string): AuthUser | null {
+    try {
+        const parts = token.split(".");
+        if (parts.length !== 3) return null;
+
+        const payload = JSON.parse(atob(parts[1]));
+
+        return {
+            userId: payload.sub ?? "",
+            name: payload.name ?? "",
+            phone: payload.phone ?? "",
+        };
+    } catch {
+        return null;
+    }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [token, setToken] = useState<string | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
@@ -34,10 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedToken && !isTokenExpired(storedToken)) {
             setToken(storedToken);
+            setUser(extractUserFromToken(storedToken));
         } else {
             localStorage.removeItem("token");
             localStorage.removeItem("currentInstallationId");
             setToken(null);
+            setUser(null);
         }
 
         setAuthLoading(false);
@@ -46,19 +73,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const value = useMemo(
         () => ({
             token,
+            user,
             isAuthenticated: !!token,
             authLoading,
-            login: (newToken: string) => {
-                localStorage.setItem("token", newToken);
-                setToken(newToken);
+            login: ({ token, user }: { token: string; user: AuthUser }) => {
+                localStorage.setItem("token", token);
+                setToken(token);
+                setUser(user);
             },
             logout: () => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("currentInstallationId");
                 setToken(null);
+                setUser(null);
             },
         }),
-        [token, authLoading]
+        [token, user, authLoading]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
